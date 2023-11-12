@@ -29,9 +29,9 @@ def index():
 
     if not session.get("user"):
         session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
-        return render_template('index.html', auth_url=session["flow"]["auth_uri"], version=msal.__version__)
+        return render_template('index.html', auth_url=session["flow"]["auth_uri"])
     else:
-        return render_template('index.html', user=session["user"], version=msal.__version__)
+        return render_template('index.html', user=session["user"], company_profiles=company_profiles)
 
 @app.route("/login")
 def login():
@@ -101,7 +101,9 @@ def _get_token_from_cache(scope=None):
         result = cca.acquire_token_silent(scope, account=accounts[0])
         _save_cache(cache)
         return result
-    
+
+company_profiles = []
+
 @app.route("/company_profile", methods=['GET', 'POST'])
 def company_profile():
     # Check if user is authenticated
@@ -111,25 +113,41 @@ def company_profile():
         # Process the form data
         company_name = request.form.get('company_name')
         account_number = request.form.get('account_number')
-        company_website = request.form.get('company_website')
-        business_phone = request.form.get('business_phone')
-        main_office_address = request.form.get('main_office_address')
-        address_line_1 = request.form.get('address_line_1')
-        address_line_2 = request.form.get('address_line_2')
-        city = request.form.get('city')
-        country = request.form.get('country')
-        working_hours = request.form.get('working_hours')
-        working_days = request.form.get('working_days')
-        work_arrangement = request.form.get('work_arrangement')
+        # company_website = request.form.get('company_website')
+        # business_phone = request.form.get('business_phone')
+        # main_office_address = request.form.get('main_office_address')
+        # address_line_1 = request.form.get('address_line_1')
+        # address_line_2 = request.form.get('address_line_2')
+        # city = request.form.get('city')
+        # country = request.form.get('country')
+        # working_hours = request.form.get('working_hours')
+        # working_days = request.form.get('working_days')
+        # work_arrangement = request.form.get('work_arrangement')
 
         # Add logic to save this data or process it as needed
+        # Store profile data
+        profile = {
+            "id": len(company_profiles) + 1,
+            "company_name": company_name,
+            "account_number": account_number,
+            # Add other fields...
+        }
+        company_profiles.append(profile)
 
         # Redirect to next page or acknowledge the submission
-        return redirect(url_for('next_page'))  # Replace 'next_page' with your next route
+        return redirect(url_for('index'))  # Replace 'next_page' with your next route
 
     # Render the form page if method is GET
     return render_template('company_profile.html')
 
+
+@app.route("/company_profile/<int:id>")
+def view_company_profile(id):
+    profile = next((p for p in company_profiles if p["id"] == id), None)
+    if profile:
+        return render_template("view_company_profile.html", profile=profile)
+    else:
+        return "Profile not found", 404
 
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template

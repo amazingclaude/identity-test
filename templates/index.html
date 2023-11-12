@@ -6,8 +6,26 @@
 {% if user %}
 <h3>Hello, {{ user.given_name }}</h3>
 
-<!-- Job Advertisement Creation Button -->
+
+<h3>Company Profiles</h3>
+
+{% if company_profiles %}
+    <ul>
+    {% for profile in company_profiles %}
+        <li>
+            <a href="{{ url_for('view_company_profile', id=profile.id) }}">
+                {{ profile.company_name }}
+            </a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No company profiles found.</p>
+{% endif %}
+
+
 <a href="/company_profile"><button>Create Company Profile</button></a>
+
 
 <!-- {% if config.get("ENDPOINT") %}
 <li><a href='/graphcall'>Call Microsoft Graph API</a></li>

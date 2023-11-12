@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}View Company Profile{% endblock %}
+{% block content %}
+
+<h2>Company Profile: {{ profile.company_name }}</h2>
+
+<div>
+    <p><strong>Company Name:</strong> {{ profile.company_name }}</p>
+    <p><strong>Account Number:</strong> {{ profile.account_number }}</p>
+    <!-- Add more fields as needed -->
+</div>
+
+<a href="{{ url_for('index') }}">Back to Home</a>
+
+{% endblock %}
