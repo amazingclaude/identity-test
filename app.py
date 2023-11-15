@@ -4,6 +4,7 @@ from flask import Flask, render_template, session, request, redirect, url_for
 from flask_session import Session  # https://pythonhosted.org/Flask-Session
 import msal
 import app_config
+import json
 
 
 app = Flask(__name__)
@@ -102,7 +103,21 @@ def _get_token_from_cache(scope=None):
         _save_cache(cache)
         return result
 
-company_profiles = []
+# Function to load company profiles from a JSON file
+def load_company_profiles():
+    try:
+        with open('./database/company_profiles.json', 'r') as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+# Function to save company profiles to a JSON file
+def save_company_profiles(profiles):
+    with open('./database/company_profiles.json', 'w') as file:
+        json.dump(profiles, file, indent=4)
+
+# Load company profiles at the start
+company_profiles = load_company_profiles()
 
 @app.route("/company_profile", methods=['GET', 'POST'])
 def company_profile():
@@ -132,7 +147,10 @@ def company_profile():
             "account_number": account_number,
             # Add other fields...
         }
+    
         company_profiles.append(profile)
+
+        save_company_profiles(company_profiles)
 
         # Redirect to next page or acknowledge the submission
         return redirect(url_for('index'))  # Replace 'next_page' with your next route
@@ -149,6 +167,21 @@ def view_company_profile(id):
     else:
         return "Profile not found", 404
 
+@app.route("/edit_company_profile/<int:id>", methods=["GET", "POST"])
+def edit_company_profile(id):
+    profile = next((p for p in company_profiles if p["id"] == id), None)
+    if not profile:
+        return "Profile not found", 404
+
+    if request.method == "POST":
+        # Process the form data and update the profile
+        profile['company_name'] = request.form.get('company_name')
+        profile['account_number'] = request.form.get('account_number')
+        # Update other fields as necessary
+        save_company_profiles(company_profiles)
+        return redirect(url_for('view_company_profile', id=id))
+
+    return render_template("edit_company_profile.html", profile=profile)
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 
