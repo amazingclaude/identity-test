@@ -2,17 +2,17 @@
 {% block title %}Job Creation{% endblock %}
 {% block content %}
 
-<h1>Company Profile Creation</h1>
+<h1>job Profile Creation</h1>
 
-<form method="post" action="{{ url_for('company_profile') }}">
+<form method="post" action="{{ url_for('job_profile') }}">
     <div>
-        <label for="company_id">Company ID:</label>
-        <span id="company_id">{{ company_id }}</span>
+        <label for="job_id">job ID:</label>
+        <span id="job_id">{{ job_id }}</span>
     </div>    
 
     <div>
-        <label for="company_name">Company Name:</label>
-        <input type="text" name="company_name" id="company_name" required>
+        <label for="job_name">job Name:</label>
+        <input type="text" name="job_name" id="job_name" required>
     </div>
 
     <div>
@@ -21,8 +21,8 @@
     </div>
 
     <div>
-        <label for="company_website">Company Website:</label>
-        <input type="url" name="company_website" id="company_website">
+        <label for="job_website">job Website:</label>
+        <input type="url" name="job_website" id="job_website">
     </div>
 
     <div>

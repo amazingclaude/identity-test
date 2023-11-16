@@ -32,9 +32,9 @@ def index():
         session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
         return render_template('index.html', auth_url=session["flow"]["auth_uri"])
     else:
-        # Load company profiles at the start
-        company_profiles = load_company_profiles() 
-        return render_template('index.html', user=session["user"], company_profiles=company_profiles)
+        # Load job profiles at the start
+        job_profiles = load_job_profiles() 
+        return render_template('index.html', user=session["user"], job_profiles=job_profiles)
 
 @app.route("/login")
 def login():
@@ -105,17 +105,17 @@ def _get_token_from_cache(scope=None):
         _save_cache(cache)
         return result
 
-# # Function to load company profiles from a JSON file
-# def load_company_profiles():
+# # Function to load job profiles from a JSON file
+# def load_job_profiles():
 #     try:
-#         with open('./database/company_profiles.json', 'r') as file:
+#         with open('./database/job_profiles.json', 'r') as file:
 #             return json.load(file)
 #     except (FileNotFoundError, json.JSONDecodeError):
 #         return []
 
-# # Function to save company profiles to a JSON file
-# def save_company_profiles(profiles):
-#     with open('./database/company_profiles.json', 'w') as file:
+# # Function to save job profiles to a JSON file
+# def save_job_profiles(profiles):
+#     with open('./database/job_profiles.json', 'w') as file:
 #         json.dump(profiles, file, indent=4)
 
 
@@ -128,33 +128,33 @@ def get_profile_file_path():
     directory = os.path.join("./database", user_aud)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    return os.path.join(directory, 'company_profiles.json')
+    return os.path.join(directory, 'job_profiles.json')
 
-def load_company_profiles():
+def load_job_profiles():
     try:
         with open(get_profile_file_path(), 'r') as file:
             return json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
         return []
 
-def save_company_profiles(profiles):
+def save_job_profiles(profiles):
     with open(get_profile_file_path(), 'w') as file:
         json.dump(profiles, file, indent=4)
 
 
-@app.route("/company_profile", methods=['GET', 'POST'])
-def company_profile():
-    company_profiles = load_company_profiles() 
+@app.route("/job_profile", methods=['GET', 'POST'])
+def job_profile():
+    job_profiles = load_job_profiles() 
         # Process the form data
-    company_id=len(company_profiles) + 1
+    job_id=len(job_profiles) + 1
     # Check if user is authenticated
     if not session.get("user"):
         return redirect(url_for("login"))
     if request.method == 'POST':
         
-        company_name = request.form.get('company_name')
+        job_name = request.form.get('job_name')
         employee_number = request.form.get('employee_number')
-        # company_website = request.form.get('company_website')
+        # job_website = request.form.get('job_website')
         # business_phone = request.form.get('business_phone')
         # main_office_address = request.form.get('main_office_address')
         # address_line_1 = request.form.get('address_line_1')
@@ -169,48 +169,48 @@ def company_profile():
         
         # Store profile data
         profile = {
-            "company_id": company_id,
-            "company_name": company_name,
+            "job_id": job_id,
+            "job_name": job_name,
             "employee_number": employee_number,
             # Add other fields...
         }
     
-        company_profiles.append(profile)
+        job_profiles.append(profile)
 
-        save_company_profiles(company_profiles)
+        save_job_profiles(job_profiles)
 
         # Redirect to next page or acknowledge the submission
-        return redirect(url_for('view_company_profile'))  # Replace 'next_page' with your next route
+        return redirect(url_for('view_job_profile'))  # Replace 'next_page' with your next route
 
     # Render the form page if method is GET
-    return render_template('company_profile.html',company_id=company_id, user=session["user"] )
+    return render_template('job_profile.html',job_id=job_id, user=session["user"] )
 
 
-@app.route("/company_profile/<int:company_id>")
-def view_company_profile(company_id):
-    company_profiles = load_company_profiles() 
-    profile = next((p for p in company_profiles if p["company_id"] == company_id), None)
+@app.route("/job_profile/<int:job_id>")
+def view_job_profile(job_id):
+    job_profiles = load_job_profiles() 
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
     if profile:
-        return render_template("view_company_profile.html", profile=profile, user=session["user"])
+        return render_template("view_job_profile.html", profile=profile, user=session["user"])
     else:
         return "Profile not found", 404
 
-@app.route("/edit_company_profile/<int:company_id>", methods=["GET", "POST"])
-def edit_company_profile(company_id):
-    company_profiles = load_company_profiles() 
-    profile = next((p for p in company_profiles if p["company_id"] == company_id), None)
+@app.route("/edit_job_profile/<int:job_id>", methods=["GET", "POST"])
+def edit_job_profile(job_id):
+    job_profiles = load_job_profiles() 
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
     if not profile:
         return "Profile not found", 404
 
     if request.method == "POST":
         # Process the form data and update the profile
-        profile['company_name'] = request.form.get('company_name')
+        profile['job_name'] = request.form.get('job_name')
         profile['employee_number'] = request.form.get('employee_number')
         # Update other fields as necessary
-        save_company_profiles(company_profiles) #Due to dictionaries are mutable. So when we modify profile, we're actually modifying the dictionary inside the company_profiles list.
-        return redirect(url_for('view_company_profile', company_id=company_id))
+        save_job_profiles(job_profiles) #Due to dictionaries are mutable. So when we modify profile, we're actually modifying the dictionary inside the job_profiles list.
+        return redirect(url_for('view_job_profile', job_id=job_id))
 
-    return render_template("edit_company_profile.html", profile=profile, user=session["user"])
+    return render_template("edit_job_profile.html", profile=profile, user=session["user"])
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 

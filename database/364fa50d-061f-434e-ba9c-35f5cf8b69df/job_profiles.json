@@ -1,12 +1,12 @@
 [
     {
         "job_id": 1,
-        "job_name": "Zispire",
+        "job_name": "AI Consultant",
         "employee_number": "1234"
     },
     {
         "job_id": 2,
-        "job_name": "Zispire2",
+        "job_name": "Accountant",
         "employee_number": "222"
     }
 ]

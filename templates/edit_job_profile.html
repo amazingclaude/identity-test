@@ -1,0 +1,30 @@
+
+{% extends "base.html" %}
+{% block title %}Edit job Profile{% endblock %}
+{% block content %}
+
+<h1>Edit job Profile</h1>
+<form method="post" action="{{ url_for('edit_job_profile', job_id=profile['job_id']) }}">
+    <div>
+        <label for="job_id">job ID:</label>
+        <span id="job_id">{{ profile['job_id'] }}</span>
+    </div>
+    
+    <div>
+        <label for="job_name">job Name:</label>
+        <input type="text" id="job_name" name="job_name" value="{{ profile['job_name'] }}" required>
+    </div>
+    <div>
+        <label for="employee_number">Account Number:</label>
+        <input type="number" id="employee_number" name="employee_number" value="{{ profile['employee_number'] }}" required>
+    </div>
+    <!-- Include other fields as necessary -->
+    <button type="submit">Save Changes</button>
+</form>
+
+<div>
+    <a href="{{ url_for('view_job_profile', job_id=profile.job_id) }}" style="text-decoration: none;">
+        <button>Back</button>
+    </a>
+</div>
+{% endblock %}
