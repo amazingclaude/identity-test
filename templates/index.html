@@ -3,7 +3,7 @@
 
 {% block content %}
 {% if user %}
-<h3>job Profiles</h3>
+<h3>Job Profiles</h3>
 
 {% if job_profiles %}
     <div style="border: 2px solid #000; padding: 10px; max-width: 300px; ">
@@ -22,7 +22,7 @@
 {% endif %}
 
 <a href="/job_profile" style="text-decoration: none; ">
-    <button style="margin-top: 20px;">Create job Profile</button>
+    <button style="margin-top: 20px;">Create Job Profile</button>
 </a>
 
 {% if config.get("ENDPOINT") %}
