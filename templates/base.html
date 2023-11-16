@@ -2,39 +2,56 @@
 <html lang="en">
 
 <head>
-    
-
-
     <meta charset="UTF-8">
     {% block metadata %}{% endblock %}
-
     <title>{% block title %}{% endblock %}</title>
 
     <!-- Bootstrap CSS file reference -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('index')}}">Zispire Platform</a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{{ url_for('index')}}">Home</a>
                     </li>
+            
                     <!-- <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('graphcall')}}">Graph API</a>
                     </li> -->
+                </ul>>
+                <ul class="navbar-nav">
+                    {% if user %}
+                    <!-- User Dropdown Menu -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Hello: {{ user.given_name }}
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            {% if config.get("B2C_PROFILE_AUTHORITY") %}
+                            <li><a class="dropdown-item" href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'>Edit User Profile</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link active" href='{{ auth_url }}'>Sign In</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -44,13 +61,18 @@
         <br />
         {% block content %}
         {% endblock %}
-
-        <hr />
-        <footer>
-            <p>Copyrights © 2023 All Rights Reserved by Zispire Limited
-            </p>
-        </footer>
+        
+       
     </div>
+
+
+   
+    <footer class="footer">
+        <p>Copyrights © 2023 All Rights Reserved by Zispire Limited</p>
+    </footer>
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 </body>
 
 </html>

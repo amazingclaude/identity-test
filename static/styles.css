@@ -1,45 +1,61 @@
-<style>
-    body {
-        font-family: Arial, sans-serif; /* Example Font */
-        color: #333; /* Main Text Color */
-        background-color: #f4f4f4; /* Page Background */
-        line-height: 1.6; /* Line Spacing */
-    }
+html {
+    height: 100%; /* Ensures the root element takes full height */
+}
 
-    h3 {
-        color: #0056b3; /* Headers Color */
-        margin-bottom: 20px; /* Spacing after headers */
-    }
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Use full viewport height */
+    margin: 0; /* Resets any default margin */
+}
 
-    ul {
-        list-style-type: none; /* Removes default bullets */
-        padding: 0;
-    }
+.body-content {
+    flex: 1; /* This makes the content expand to fill available space */
+    /* Rest of your styles */
+}
 
-    ul li a {
-        color: #0056b3; /* Link Color */
-        text-decoration: none; /* Removes underline */
-    }
+h3 {
+    color: #0056b3; /* Headers Color */
+    margin-bottom: 20px; /* Spacing after headers */
+}
 
-    ul li a:hover {
-        text-decoration: underline; /* Underline on hover */
-    }
+ul {
+    list-style-type: none; /* Removes default bullets */
+    padding: 0;
+}
 
-    button {
-        background-color: #008cba; /* Button Color */
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
+ul li a {
+    color: #0056b3; /* Link Color */
+    text-decoration: none; /* Removes underline */
+}
 
-    button:hover {
-        background-color: #0056b3; /* Button Hover Color */
-    }
+ul li a:hover {
+    text-decoration: underline; /* Underline on hover */
+}
 
-    footer li {
-        display: inline; /* Aligns footer links horizontally */
-        margin-right: 20px;
-    }
-</style>
+button {
+    background-color: #008cba; /* Button Color */
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px; /* Add margin between buttons */
+}
+
+button:hover {
+    background-color: #0056b3; /* Button Hover Color */
+}
+
+footer {
+    background-color: #343a40; /* Dark background */
+    color: white; /* White text */
+    padding: 10px 0; /* Some padding on top and bottom */
+    font-size: 14px; /* Smaller font size */
+    margin-top: auto; /* Pushes footer to the bottom */
+}
+
+footer p {
+    margin: 0; /* Keeps the current margin setting */
+    padding-left: 20px; /* Adds space to the left inside the footer */
+}

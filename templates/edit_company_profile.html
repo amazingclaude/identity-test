@@ -1,6 +1,6 @@
 
 {% extends "base.html" %}
-{% block title %}View Company Profile{% endblock %}
+{% block title %}Edit Company Profile{% endblock %}
 {% block content %}
 
 <h1>Edit Company Profile</h1>
@@ -22,4 +22,9 @@
     <button type="submit">Save Changes</button>
 </form>
 
+<div>
+    <a href="{{ url_for('view_company_profile', company_id=profile.company_id) }}" style="text-decoration: none;">
+        <button>Back</button>
+    </a>
+</div>
 {% endblock %}

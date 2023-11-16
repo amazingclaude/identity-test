@@ -183,7 +183,7 @@ def company_profile():
         return redirect(url_for('view_company_profile'))  # Replace 'next_page' with your next route
 
     # Render the form page if method is GET
-    return render_template('company_profile.html',company_id=company_id)
+    return render_template('company_profile.html',company_id=company_id, user=session["user"] )
 
 
 @app.route("/company_profile/<int:company_id>")
@@ -191,7 +191,7 @@ def view_company_profile(company_id):
     company_profiles = load_company_profiles() 
     profile = next((p for p in company_profiles if p["company_id"] == company_id), None)
     if profile:
-        return render_template("view_company_profile.html", profile=profile)
+        return render_template("view_company_profile.html", profile=profile, user=session["user"])
     else:
         return "Profile not found", 404
 
@@ -210,7 +210,7 @@ def edit_company_profile(company_id):
         save_company_profiles(company_profiles) #Due to dictionaries are mutable. So when we modify profile, we're actually modifying the dictionary inside the company_profiles list.
         return redirect(url_for('view_company_profile', company_id=company_id))
 
-    return render_template("edit_company_profile.html", profile=profile)
+    return render_template("edit_company_profile.html", profile=profile, user=session["user"])
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 
