@@ -1,0 +1,45 @@
+<style>
+    body {
+        font-family: Arial, sans-serif; /* Example Font */
+        color: #333; /* Main Text Color */
+        background-color: #f4f4f4; /* Page Background */
+        line-height: 1.6; /* Line Spacing */
+    }
+
+    h3 {
+        color: #0056b3; /* Headers Color */
+        margin-bottom: 20px; /* Spacing after headers */
+    }
+
+    ul {
+        list-style-type: none; /* Removes default bullets */
+        padding: 0;
+    }
+
+    ul li a {
+        color: #0056b3; /* Link Color */
+        text-decoration: none; /* Removes underline */
+    }
+
+    ul li a:hover {
+        text-decoration: underline; /* Underline on hover */
+    }
+
+    button {
+        background-color: #008cba; /* Button Color */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3; /* Button Hover Color */
+    }
+
+    footer li {
+        display: inline; /* Aligns footer links horizontally */
+        margin-right: 20px;
+    }
+</style>

@@ -2,8 +2,6 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-
-
 {% if user %}
 <h3>Hello, {{ user.given_name }}</h3>
 
@@ -14,7 +12,7 @@
     <ul>
     {% for profile in company_profiles %}
         <li>
-            <a href="{{ url_for('view_company_profile', id=profile.id) }}">
+            <a href="{{ url_for('view_company_profile', company_id=profile.company_id) }}">
                 {{ profile.company_name }}
             </a>
         </li>
@@ -28,9 +26,9 @@
 <a href="/company_profile"><button>Create Company Profile</button></a>
 
 
-<!-- {% if config.get("ENDPOINT") %}
+{% if config.get("ENDPOINT") %}
 <li><a href='/graphcall'>Call Microsoft Graph API</a></li>
-{% endif %} -->
+{% endif %}
 
 {% if config.get("B2C_PROFILE_AUTHORITY") %}
 <li><a href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'>Edit User Profile</a></li>
@@ -38,7 +36,7 @@
 
 <li><a href="/logout">Logout</a></li>
 
-<p>User information: {{ user }}</p>
+<!-- <p>User information: {{ user }}</p> -->
 
 {% else %}
 <li><a href='{{ auth_url }}'>Sign In</a></li>

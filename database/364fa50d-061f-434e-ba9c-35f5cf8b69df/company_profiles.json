@@ -1,7 +1,12 @@
 [
     {
-        "id": 1,
+        "company_id": 1,
         "company_name": "Zispire",
-        "account_number": "123"
+        "employee_number": "1234"
+    },
+    {
+        "company_id": 2,
+        "company_name": "Zispire2",
+        "employee_number": "222"
     }
 ]

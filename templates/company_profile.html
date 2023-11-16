@@ -6,13 +6,18 @@
 
 <form method="post" action="{{ url_for('company_profile') }}">
     <div>
+        <label for="company_id">Company ID:</label>
+        <span id="company_id">{{ company_id }}</span>
+    </div>    
+
+    <div>
         <label for="company_name">Company Name:</label>
         <input type="text" name="company_name" id="company_name" required>
     </div>
 
     <div>
-        <label for="account_number">Account Number:</label>
-        <input type="text" name="account_number" id="account_number" required>
+        <label for="employee_number">Account Number:</label>
+        <input type="text" name="employee_number" id="employee_number" required>
     </div>
 
     <div>
@@ -72,5 +77,5 @@
 
     <button type="submit">Save and Continue</button>
 </form>
-
+<a href="/">Cancel</a>
 {% endblock %}

@@ -28,7 +28,7 @@ def company_profile():
     if request.method == 'POST':
         # Process the form data
         company_name = request.form.get('company_name')
-        account_number = request.form.get('account_number')
+        employee_number = request.form.get('employee_number')
    
 
         # Add logic to save this data or process it as needed
@@ -36,7 +36,7 @@ def company_profile():
         profile = {
             "id": len(company_profiles) + 1,
             "company_name": company_name,
-            "account_number": account_number,
+            "employee_number": employee_number,
             # Add other fields...
         }
         company_profiles.append(profile)

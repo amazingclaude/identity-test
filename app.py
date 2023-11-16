@@ -144,13 +144,16 @@ def save_company_profiles(profiles):
 
 @app.route("/company_profile", methods=['GET', 'POST'])
 def company_profile():
+    company_profiles = load_company_profiles() 
+        # Process the form data
+    company_id=len(company_profiles) + 1
     # Check if user is authenticated
     if not session.get("user"):
         return redirect(url_for("login"))
     if request.method == 'POST':
-        # Process the form data
+        
         company_name = request.form.get('company_name')
-        account_number = request.form.get('account_number')
+        employee_number = request.form.get('employee_number')
         # company_website = request.form.get('company_website')
         # business_phone = request.form.get('business_phone')
         # main_office_address = request.form.get('main_office_address')
@@ -163,12 +166,12 @@ def company_profile():
         # work_arrangement = request.form.get('work_arrangement')
 
         # Add logic to save this data or process it as needed
-        company_profiles = load_company_profiles() 
+        
         # Store profile data
         profile = {
-            "id": len(company_profiles) + 1,
+            "company_id": company_id,
             "company_name": company_name,
-            "account_number": account_number,
+            "employee_number": employee_number,
             # Add other fields...
         }
     
@@ -177,35 +180,35 @@ def company_profile():
         save_company_profiles(company_profiles)
 
         # Redirect to next page or acknowledge the submission
-        return redirect(url_for('index'))  # Replace 'next_page' with your next route
+        return redirect(url_for('view_company_profile'))  # Replace 'next_page' with your next route
 
     # Render the form page if method is GET
-    return render_template('company_profile.html')
+    return render_template('company_profile.html',company_id=company_id)
 
 
-@app.route("/company_profile/<int:id>")
-def view_company_profile(id):
+@app.route("/company_profile/<int:company_id>")
+def view_company_profile(company_id):
     company_profiles = load_company_profiles() 
-    profile = next((p for p in company_profiles if p["id"] == id), None)
+    profile = next((p for p in company_profiles if p["company_id"] == company_id), None)
     if profile:
         return render_template("view_company_profile.html", profile=profile)
     else:
         return "Profile not found", 404
 
-@app.route("/edit_company_profile/<int:id>", methods=["GET", "POST"])
-def edit_company_profile(id):
+@app.route("/edit_company_profile/<int:company_id>", methods=["GET", "POST"])
+def edit_company_profile(company_id):
     company_profiles = load_company_profiles() 
-    profile = next((p for p in company_profiles if p["id"] == id), None)
+    profile = next((p for p in company_profiles if p["company_id"] == company_id), None)
     if not profile:
         return "Profile not found", 404
 
     if request.method == "POST":
         # Process the form data and update the profile
         profile['company_name'] = request.form.get('company_name')
-        profile['account_number'] = request.form.get('account_number')
+        profile['employee_number'] = request.form.get('employee_number')
         # Update other fields as necessary
         save_company_profiles(company_profiles) #Due to dictionaries are mutable. So when we modify profile, we're actually modifying the dictionary inside the company_profiles list.
-        return redirect(url_for('view_company_profile', id=id))
+        return redirect(url_for('view_company_profile', company_id=company_id))
 
     return render_template("edit_company_profile.html", profile=profile)
 
