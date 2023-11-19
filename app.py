@@ -113,12 +113,13 @@ def _get_token_from_cache(scope=None):
 #*******************************
 #COMPANY PROFILE
 #*******************************
-if has_request_context() and 'user' in session:
-    user_aud = session["user"].get("aud", "default")
-else:
-    user_aud = "default"
-        
-def get_company_file_path(user_aud=user_aud):
+
+
+def get_company_file_path():
+    if has_request_context() and 'user' in session:
+        user_aud = session["user"].get("aud", "default")
+    else:
+        user_aud = "default"
     directory = os.path.join("./database", user_aud)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -170,7 +171,12 @@ def edit_company_profile():
 #JOB PROFILE
 #*******************************
 
-def get_profile_file_path(user_aud=user_aud):
+def get_profile_file_path():
+    if has_request_context() and 'user' in session:
+        user_aud = session["user"].get("aud", "default")
+    else:
+        user_aud = "default"
+        
     directory = os.path.join("./database", user_aud)
     if not os.path.exists(directory):
         os.makedirs(directory)
