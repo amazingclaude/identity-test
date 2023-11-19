@@ -34,6 +34,11 @@ def index():
     else:
         # Load job profiles at the start
         job_profiles = load_job_profiles() 
+        sort_order = request.args.get('sort', 'asc')
+        if sort_order == 'desc':
+            job_profiles.sort(key=lambda x: x['job_id'], reverse=True)
+        else:
+            job_profiles.sort(key=lambda x: x['job_id'])   
         return render_template('index.html', user=session["user"], job_profiles=job_profiles)
 
 @app.route("/login")
@@ -104,31 +109,73 @@ def _get_token_from_cache(scope=None):
         result = cca.acquire_token_silent(scope, account=accounts[0])
         _save_cache(cache)
         return result
+    
+#*******************************
+#COMPANY PROFILE
+#*******************************
+if has_request_context() and 'user' in session:
+    user_aud = session["user"].get("aud", "default")
+else:
+    user_aud = "default"
+        
+def get_company_file_path(user_aud=user_aud):
+    directory = os.path.join("./database", user_aud)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return os.path.join(directory, 'company_profile.json')
 
-# # Function to load job profiles from a JSON file
-# def load_job_profiles():
-#     try:
-#         with open('./database/job_profiles.json', 'r') as file:
-#             return json.load(file)
-#     except (FileNotFoundError, json.JSONDecodeError):
-#         return []
+def load_company_profile():
+    try:
+        with open(get_company_file_path(), 'r') as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
-# # Function to save job profiles to a JSON file
-# def save_job_profiles(profiles):
-#     with open('./database/job_profiles.json', 'w') as file:
-#         json.dump(profiles, file, indent=4)
+def save_company_profile(profile):
+    with open(get_company_file_path(), 'w') as file:
+        json.dump(profile, file, indent=4)
 
 
-def get_profile_file_path():
-    if has_request_context() and 'user' in session:
-        user_aud = session["user"].get("aud", "default")
-    else:
-        user_aud = "default"
+@app.route("/company_profile/view")
+def view_company_profile():
+    company_profile = load_company_profile()
+    return render_template("view_company_profile.html", profile=company_profile, user=session["user"])
 
+
+@app.route("/company_profile/edit", methods=["GET", "POST"])
+def edit_company_profile():
+    company_profile = load_company_profile()
+    if request.method == "POST":
+        # Process form data and update company_profile dictionary
+        company_profile['company_name'] = request.form.get('company_name')
+        company_profile['company_website'] = request.form.get('company_website')
+        # business_phone = request.form.get('business_phone')
+        # main_office_address = request.form.get('main_office_address')
+        # address_line_1 = request.form.get('address_line_1')
+        # address_line_2 = request.form.get('address_line_2')
+        # city = request.form.get('city')
+        # country = request.form.get('country')
+        # working_hours = request.form.get('working_hours')
+        # working_days = request.form.get('working_days')
+        # work_arrangement = request.form.get('work_arrangement')
+        # Update other fields as necessary
+
+        save_company_profile(company_profile)
+        return redirect(url_for('view_company_profile'))
+
+    return render_template("edit_company_profile.html", profile=company_profile, user=session["user"])
+
+
+#*******************************
+#JOB PROFILE
+#*******************************
+
+def get_profile_file_path(user_aud=user_aud):
     directory = os.path.join("./database", user_aud)
     if not os.path.exists(directory):
         os.makedirs(directory)
     return os.path.join(directory, 'job_profiles.json')
+
 
 def load_job_profiles():
     try:
@@ -145,25 +192,22 @@ def save_job_profiles(profiles):
 @app.route("/job_profile", methods=['GET', 'POST'])
 def job_profile():
     job_profiles = load_job_profiles() 
-        # Process the form data
-    job_id=len(job_profiles) + 1
+        
+    existing_ids = set(profile["job_id"] for profile in job_profiles)
+    # Find the first missing job_id
+    job_id = 1
+    while job_id in existing_ids:
+        job_id += 1
+
     # Check if user is authenticated
     if not session.get("user"):
         return redirect(url_for("login"))
+    # Process the form data
     if request.method == 'POST':
         
         job_name = request.form.get('job_name')
         employee_number = request.form.get('employee_number')
-        # job_website = request.form.get('job_website')
-        # business_phone = request.form.get('business_phone')
-        # main_office_address = request.form.get('main_office_address')
-        # address_line_1 = request.form.get('address_line_1')
-        # address_line_2 = request.form.get('address_line_2')
-        # city = request.form.get('city')
-        # country = request.form.get('country')
-        # working_hours = request.form.get('working_hours')
-        # working_days = request.form.get('working_days')
-        # work_arrangement = request.form.get('work_arrangement')
+
 
         # Add logic to save this data or process it as needed
         
@@ -180,14 +224,14 @@ def job_profile():
         save_job_profiles(job_profiles)
 
         # Redirect to next page or acknowledge the submission
-        return redirect(url_for('view_job_profile'))  # Replace 'next_page' with your next route
+        return redirect(url_for('view_job_profile',job_id=job_id))  
 
     # Render the form page if method is GET
     return render_template('job_profile.html',job_id=job_id, user=session["user"] )
 
 
 @app.route("/job_profile/<int:job_id>")
-def view_job_profile(job_id):
+def view_job_profile(job_id): 
     job_profiles = load_job_profiles() 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
     if profile:
@@ -211,6 +255,13 @@ def edit_job_profile(job_id):
         return redirect(url_for('view_job_profile', job_id=job_id))
 
     return render_template("edit_job_profile.html", profile=profile, user=session["user"])
+
+@app.route("/delete_job_profile/<int:job_id>", methods=["POST"])
+def delete_job_profile(job_id):
+    job_profiles = load_job_profiles()
+    job_profiles = [profile for profile in job_profiles if profile["job_id"] != job_id]
+    save_job_profiles(job_profiles)
+    return redirect(url_for('index'))
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}View job Profile{% endblock %}
+{% block content %}
+
+
+    <h1>Company Profile</h1>
+    <p><strong>Company Name:</strong> {{ profile.company_name }}</p>
+    <p><strong>Company Website:</strong> {{ profile.company_website }}</p>
+    
+    <!-- Display other fields as necessary -->
+
+    <a href="{{ url_for('edit_company_profile') }}">
+        <button>Edit Company Profile</button>
+    </a>
+
+    <div>
+        <a href="/" style="text-decoration: none;">
+            <button>Back</button>
+        </a>
+    </div>
+
+{% endblock %}

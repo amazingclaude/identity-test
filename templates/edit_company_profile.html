@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}View job Profile{% endblock %}
+{% block content %}
+
+
+    <h1>Edit Company Profile</h1>
+    <form method="post">
+        <label for="company_name">Company Name:</label><br>
+        <input type="text" id="company_name" name="company_name" value="{{ profile.company_name }}"><br>
+
+        <label for="company_website">Registration Number:</label><br>
+        <input type="text" id="company_website" name="company_website" value="{{ profile.company_website }}"><br>
+
+        <!-- Add other fields as necessary -->
+
+        <button type="submit">Save Changes</button> 
+    </form>
+    <div>
+        <a href="{{ url_for('view_company_profile') }}" style="text-decoration: none;">
+            <button>Back</button>
+        </a>
+    </div>
+
+{% endblock %}

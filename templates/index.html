@@ -2,32 +2,55 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-{% if user %}
-<h3>Job Profiles</h3>
 
-{% if job_profiles %}
-    <div style="border: 2px solid #000; padding: 10px; max-width: 300px; ">
-        <ul style="list-style-type: none; padding: 0;">
-        {% for profile in job_profiles %}
-            <li style="margin: 5px 0; padding: 5px; border-bottom: 1px solid #ddd;">
-                <a href="{{ url_for('view_job_profile', job_id=profile.job_id) }}" style="text-decoration: none; color: #333;">
-                    {{ profile.job_name }}
-                </a>
-            </li>
-        {% endfor %}
-        </ul>
-    </div>
-{% else %}
-    <p>No job profiles found.</p>
+
+{% if user %}
+
+    <h3>Job Profiles</h3>
+
+    {% if job_profiles %}
+        <div style="max-width: 300px;">
+            <table style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #000;">
+                        <th style="padding: 8px; text-align: left;">
+                            Job ID
+                            <a href="{{ url_for('index', sort='asc') }}">↑</a>
+                            <a href="{{ url_for('index', sort='desc') }}">↓</a>
+                        </th>
+                        <th style="padding: 8px; text-align: left;">Job Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profile in job_profiles %}
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 8px;">
+                                <a href="{{ url_for('view_job_profile', job_id=profile.job_id) }}" style="text-decoration: none; color: #333;">
+                                    {{ profile.job_id }}
+                                </a>
+                            </td>
+                            <td style="padding: 8px;">
+                                <a href="{{ url_for('view_job_profile', job_id=profile.job_id) }}" style="text-decoration: none; color: #333;">
+                                    {{ profile.job_name }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No job profiles found.</p>
+    {% endif %}
+    <a href="/job_profile" style="text-decoration: none; ">
+        <button style="margin-top: 20px;">Create Job Profile</button>
+    </a>
 {% endif %}
 
-<a href="/job_profile" style="text-decoration: none; ">
-    <button style="margin-top: 20px;">Create Job Profile</button>
-</a>
+
 
 {% if config.get("ENDPOINT") %}
 <li><a href='/graphcall'>Call Microsoft Graph API</a></li>
 {% endif %}
 
-{% endif %}
 {% endblock %}
