@@ -1,0 +1,20 @@
+[
+    {
+        "job_id": 1,
+        "job_title": "AI Consultant",
+        "report_to": "Manager",
+        "have_reports": "Yes"
+    },
+    {
+        "job_id": 2,
+        "job_title": "AI Consultant2",
+        "report_to": "Manager",
+        "have_reports": "No"
+    },
+    {
+        "job_id": 3,
+        "job_title": "AI Consultant3",
+        "report_to": "Manager",
+        "have_reports": "Yes"
+    }
+]
