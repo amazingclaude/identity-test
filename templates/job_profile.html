@@ -4,34 +4,36 @@
 
 <h1>Job Profile Creation</h1>
 
-<form method="post" action="{{ url_for('job_profile') }}">
-    <div>
-        <label for="job_id">job ID:</label>
-        <span id="job_id">{{ job_id }}</span>
-    </div>    
+<form method="post" action="{{ url_for('job_profile', job_id=profile['job_id']) if profile['job_id'] else url_for('job_profile') }}">
+<!-- <form method="post" action="{{ url_for('job_profile', job_id=profile['job_id']) }}"> -->
 
     <div>
+        <label for="job_id">Job ID:</label>
+        <span id="job_id">{{ profile['job_id'] }}</span>
+    </div>
+    
+    <div>
         <label for="job_title">Job Title:</label>
-        <input type="text" name="job_title" id="job_title" required>
+        <input type="text" id="job_title" name="job_title" value="{{ profile['job_title'] }}" required>
     </div>
 
     <div>
         <label for="report_to">Report To:</label>
-        <input type="text" name="report_to" id="report_to" required>
+        <input type="text" id="report_to" name="report_to" value="{{ profile['report_to'] }}" required>
     </div>
-
 
     <div>
         <label for="have_reports">Does this role have reports?</label>
         <select name="have_reports" id="have_reports">
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
+            <option value="Yes" {% if profile['have_reports'] == "Yes" %} selected {% endif %}>Yes</option>
+            <option value="No" {% if profile['have_reports'] == "No" %} selected {% endif %}>No</option>
         </select>
     </div>
 
-    <button type="submit">Save and Continue</button>
+    <button type="submit"> Save </button>
 </form>
-<a href="/">
+
+<a href="{{ url_for('view_job_profile', job_id=profile.job_id) if new_create_session==0 else url_for('index')}}">
     <button> Cancel</button>
     </a>
 {% endblock %}

@@ -195,73 +195,57 @@ def save_job_profiles(profiles):
         json.dump(profiles, file, indent=4)
 
 
-@app.route("/job_profile", methods=['GET', 'POST'])
-def job_profile():
-    job_profiles = load_job_profiles() 
-        
-    existing_ids = set(profile["job_id"] for profile in job_profiles)
-    # Find the first missing job_id
-    job_id = 1
-    while job_id in existing_ids:
-        job_id += 1
+@app.route("/job_profile", defaults={'job_id': None}, methods=['GET', 'POST'])
+@app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
+def job_profile(job_id):
+    job_profiles = load_job_profiles()
+    existing_ids = set(p["job_id"] for p in job_profiles)
 
-    # Check if user is authenticated
-    if not session.get("user"):
-        return redirect(url_for("login"))
-    # Process the form data
+    #Check if it is new job creation, the logic will make job_id+1 if job_id!=None, hence a supplement condition added (job_id in existing_ids): 
+    if job_id is not None and job_id in existing_ids:
+        # Editing an existing profile
+        profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+        #Create a new_create_session flag to deliver to job_profile.html, to give Cancel button two choices, either back to view page or back to index page.
+        new_create_session=0
+        if not profile:
+            return "Profile not found", 404
+    else:
+        # Creating a new profile
+        new_job_id = 1
+        while new_job_id in existing_ids:
+            new_job_id += 1
+        profile = {"job_id": new_job_id, "job_title": "", "report_to": "", "have_reports": "No"}
+        new_create_session=1
+        if not new_job_id in existing_ids:
+            job_profiles.append(profile)
+
+
     if request.method == 'POST':
-        
-        job_title = request.form.get('job_title')
-        report_to = request.form.get('report_to')
-        have_reports=request.form.get('have_reports')
-
-        # Add logic to save this data or process it as needed
-        
-        # Store profile data
-        profile = {
-            "job_id": job_id,
-            "job_title": job_title,
-            "report_to": report_to,
-            'have_reports':have_reports,
-            # Add other fields...
-        }
-    
-        job_profiles.append(profile)
+        profile['job_title'] = request.form.get('job_title')
+        profile['report_to'] = request.form.get('report_to')
+        profile['have_reports'] = request.form.get('have_reports')
 
         save_job_profiles(job_profiles)
 
-        # Redirect to next page or acknowledge the submission
-        return redirect(url_for('view_job_profile',job_id=job_id))  
-
-    # Render the form page if method is GET
-    return render_template('job_profile.html',job_id=job_id, user=session["user"] )
+        return redirect(url_for('view_job_profile', job_id=job_id))
+    return render_template("job_profile.html", profile=profile, user=session["user"],new_create_session=new_create_session)
 
 
-@app.route("/job_profile/<int:job_id>")
+
+@app.route("/job_profile/view/<int:job_id>")
 def view_job_profile(job_id): 
     job_profiles = load_job_profiles() 
+
+    print("Loaded profiles:", job_profiles)
+
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+
+    print("Found profile:", profile)
+
     if profile:
         return render_template("view_job_profile.html", profile=profile, user=session["user"])
     else:
         return "Profile not found", 404
-
-@app.route("/edit_job_profile/<int:job_id>", methods=["GET", "POST"])
-def edit_job_profile(job_id):
-    job_profiles = load_job_profiles() 
-    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
-    if not profile:
-        return "Profile not found", 404
-
-    if request.method == "POST":
-        # Process the form data and update the profile
-        profile['job_title'] = request.form.get('job_title')
-        profile['report_to'] = request.form.get('report_to')
-        # Update other fields as necessary
-        save_job_profiles(job_profiles) #Due to dictionaries are mutable. So when we modify profile, we're actually modifying the dictionary inside the job_profiles list.
-        return redirect(url_for('view_job_profile', job_id=job_id))
-
-    return render_template("edit_job_profile.html", profile=profile, user=session["user"])
 
 @app.route("/delete_job_profile/<int:job_id>", methods=["POST"])
 def delete_job_profile(job_id):
