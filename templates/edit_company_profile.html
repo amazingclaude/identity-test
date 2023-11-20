@@ -5,72 +5,78 @@
 
     <h1>Edit Company Profile</h1>
     <form method="post">
-        <label for="company_name">Company Name:</label><br>
-        <input type="text" id="company_name" name="company_name" value="{{ profile.company_name }}"><br>
-
-        <label for="company_website">Registration Number:</label><br>
-        <input type="text" id="company_website" name="company_website" value="{{ profile.company_website }}"><br>
-
+        <div>
+            <label for="company_name">Company Name:</label>
+            <input type="text" id="company_name" name="company_name" value="{{ profile.company_name }}">
+        </div>
+    
         <div>
             <label for="company_website">Company Website:</label>
-            <input type="url" name="company_website" id="company_website">
+            <input type="url" id="company_website" name="company_website" value="{{ profile.company_website }}">
         </div>
     
         <div>
             <label for="business_phone">Business Phone Number:</label>
-            <input type="tel" name="business_phone" id="business_phone">
+            <input type="tel" id="business_phone" name="business_phone" value="{{ profile.business_phone }}>
         </div>
     
         <div>
             <label for="main_office_address">Main Office Address:</label>
-            <input type="text" name="main_office_address" id="main_office_address">
+            <input type="text" id="main_office_address" name="main_office_address" value="{{ profile.main_office_address }}>
         </div>
     
         <div>
             <label for="address_line_1">Address Line 1:</label>
-            <input type="text" name="address_line_1" id="address_line_1">
+            <input type="text" id="address_line_1" name="address_line_1" value="{{ profile.address_line_1 }}">
         </div>
     
         <div>
             <label for="address_line_2">Address Line 2:</label>
-            <input type="text" name="address_line_2" id="address_line_2">
+            <input type="text" id="address_line_2" name="address_line_2" value="{{ profile.address_line_2 }}">
         </div>
     
         <div>
             <label for="city">City:</label>
-            <input type="text" name="city" id="city">
+            <input type="text" id="city" name="city" value="{{ profile.city }}" >
         </div>
     
         <div>
             <label for="country">Country:</label>
-            <input type="text" name="country" id="country">
+            <input type="text" id="country" name="country" value="{{ profile.country }}">
         </div>
     
         <div>
             <label for="working_hours">Normal Working Hours:</label>
-            <input type="text" name="working_hours" id="working_hours">
+            <input type="text" id="working_hours" name="working_hours" value="{{ profile.working_hours }}">
         </div>
     
         <div>
             <label for="working_days">Normal Working Days:</label>
-            <input type="text" name="working_days" id="working_days">
+            <input type="text" id="working_days" name="working_days" value="{{ profile.working_days }}">
         </div>
     
         <div>
             <label for="work_arrangement">Work Arrangement:</label>
-            <select name="work_arrangement" id="work_arrangement">
+            <select id="work_arrangement" name="work_arrangement" >
                 <option value="On-site">On-site</option>
                 <option value="Remote">Remote</option>
                 <option value="Hybrid">Hybrid</option>
-            </select>
-        </div>    
 
-        <button type="submit">Save Changes</button> 
+            </select>
+        </div>  
+      
+
+        <button type="submit">Save Changes</button>
     </form>
+    
     <div>
         <a href="{{ url_for('view_company_profile') }}" style="text-decoration: none;">
             <button>Back</button>
         </a>
     </div>
+
+
+
+
 
 {% endblock %}

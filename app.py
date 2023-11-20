@@ -140,12 +140,19 @@ def save_company_profile(profile):
 @app.route("/company_profile/view")
 def view_company_profile():
     company_profile = load_company_profile()
-    return render_template("view_company_profile.html", profile=company_profile, user=session["user"])
+    user=session["user"]
+    # Check if 'company_name' is not in the dictionary, if not, it means it is first time registration, hence we auto fill the info from Azure B2C
+    if 'company_name' not in company_profile:
+        company_profile['company_name'] = user.get('extension_CompanyName', 'unknown')
+        save_company_profile(company_profile)
+    return render_template("view_company_profile.html", profile=company_profile, user=user )
 
 
 @app.route("/company_profile/edit", methods=["GET", "POST"])
 def edit_company_profile():
     company_profile = load_company_profile()
+    user=session["user"]
+
     if request.method == "POST":
         # Process form data and update company_profile dictionary
         company_profile['company_name'] = request.form.get('company_name')
@@ -160,11 +167,13 @@ def edit_company_profile():
         company_profile['working_days'] = request.form.get('working_days')
         company_profile['work_arrangement'] = request.form.get('work_arrangement')
         # Update other fields as necessary
+        
+
 
         save_company_profile(company_profile)
         return redirect(url_for('view_company_profile'))
 
-    return render_template("edit_company_profile.html", profile=company_profile, user=session["user"])
+    return render_template("edit_company_profile.html", profile=company_profile, user=user)
 
 
 #*******************************
