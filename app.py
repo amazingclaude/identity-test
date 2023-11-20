@@ -150,15 +150,15 @@ def edit_company_profile():
         # Process form data and update company_profile dictionary
         company_profile['company_name'] = request.form.get('company_name')
         company_profile['company_website'] = request.form.get('company_website')
-        # business_phone = request.form.get('business_phone')
-        # main_office_address = request.form.get('main_office_address')
-        # address_line_1 = request.form.get('address_line_1')
-        # address_line_2 = request.form.get('address_line_2')
-        # city = request.form.get('city')
-        # country = request.form.get('country')
-        # working_hours = request.form.get('working_hours')
-        # working_days = request.form.get('working_days')
-        # work_arrangement = request.form.get('work_arrangement')
+        company_profile['business_phone'] = request.form.get('business_phone')
+        company_profile['main_office_address'] = request.form.get('main_office_address')
+        company_profile['address_line_1'] = request.form.get('address_line_1')
+        company_profile['address_line_2'] = request.form.get('address_line_2')
+        company_profile['city'] = request.form.get('city')
+        company_profile['country'] = request.form.get('country')
+        company_profile['working_hours'] = request.form.get('working_hours')
+        company_profile['working_days'] = request.form.get('working_days')
+        company_profile['work_arrangement'] = request.form.get('work_arrangement')
         # Update other fields as necessary
 
         save_company_profile(company_profile)
@@ -176,7 +176,7 @@ def get_profile_file_path():
         user_aud = session["user"].get("aud", "default")
     else:
         user_aud = "default"
-        
+
     directory = os.path.join("./database", user_aud)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -211,17 +211,18 @@ def job_profile():
     # Process the form data
     if request.method == 'POST':
         
-        job_name = request.form.get('job_name')
-        employee_number = request.form.get('employee_number')
-
+        job_title = request.form.get('job_title')
+        report_to = request.form.get('report_to')
+        have_reports=request.form.get('have_reports')
 
         # Add logic to save this data or process it as needed
         
         # Store profile data
         profile = {
             "job_id": job_id,
-            "job_name": job_name,
-            "employee_number": employee_number,
+            "job_title": job_title,
+            "report_to": report_to,
+            'have_reports':have_reports,
             # Add other fields...
         }
     
@@ -254,8 +255,8 @@ def edit_job_profile(job_id):
 
     if request.method == "POST":
         # Process the form data and update the profile
-        profile['job_name'] = request.form.get('job_name')
-        profile['employee_number'] = request.form.get('employee_number')
+        profile['job_title'] = request.form.get('job_title')
+        profile['report_to'] = request.form.get('report_to')
         # Update other fields as necessary
         save_job_profiles(job_profiles) #Due to dictionaries are mutable. So when we modify profile, we're actually modifying the dictionary inside the job_profiles list.
         return redirect(url_for('view_job_profile', job_id=job_id))

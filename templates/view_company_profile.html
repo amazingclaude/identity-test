@@ -6,9 +6,16 @@
     <h1>Company Profile</h1>
     <p><strong>Company Name:</strong> {{ profile.company_name }}</p>
     <p><strong>Company Website:</strong> {{ profile.company_website }}</p>
-    
-    <!-- Display other fields as necessary -->
-
+    <p><strong>Business Phone:</strong> {{ profile.business_phone }}</p>
+    <p><strong>Main Office Address:</strong> {{ profile.main_office_address }}</p>
+    <p><strong>Address Line 1:</strong> {{ profile.address_line_1 }}</p>
+    <p><strong>Address Line 2:</strong> {{ profile.address_line_2 }}</p>
+    <p><strong>City:</strong> {{ profile.city }}</p>
+    <p><strong>Country:</strong> {{ profile.country }}</p>
+    <p><strong>Working Hours:</strong> {{ profile.working_hours }}</p>
+    <p><strong>Working Days:</strong> {{ profile.working_days }}</p>
+    <p><strong>Work Arrangement:</strong> {{ profile.work_arrangement }}</p>
+   
     <a href="{{ url_for('edit_company_profile') }}">
         <button>Edit Company Profile</button>
     </a>

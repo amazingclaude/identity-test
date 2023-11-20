@@ -2,12 +2,12 @@
 {% block title %}View job Profile{% endblock %}
 {% block content %}
 
-<h2>Job Profile: {{ profile.job_name }}</h2>
+<h2>Job Profile: {{ profile.job_title }}</h2>
 
 <div>
     <p><strong>job ID:</strong> {{ profile.job_id }}</p>
-    <p><strong>job Name:</strong> {{ profile.job_name }}</p>
-    <p><strong>Employee Number:</strong> {{ profile.employee_number }}</p>
+    <p><strong>Job Title:</strong> {{ profile.job_title }}</p>
+    <p><strong>Employee Number:</strong> {{ profile.report_to }}</p>
     <!-- Add more fields as needed -->
 </div>
 

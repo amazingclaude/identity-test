@@ -12,8 +12,8 @@ CREATE TABLE users (
 CREATE TABLE companies (
     job_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
-    job_name VARCHAR(255) NOT NULL,
-    employee_number INT,
+    job_title VARCHAR(255) NOT NULL,
+    report_to VARCHAR(255) ,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 """
@@ -27,16 +27,16 @@ def job_profile():
         return redirect(url_for("login"))
     if request.method == 'POST':
         # Process the form data
-        job_name = request.form.get('job_name')
-        employee_number = request.form.get('employee_number')
+        job_title = request.form.get('job_title')
+        report_to = request.form.get('report_to')
    
 
         # Add logic to save this data or process it as needed
         # Store profile data
         profile = {
             "id": len(job_profiles) + 1,
-            "job_name": job_name,
-            "employee_number": employee_number,
+            "job_title": job_title,
+            "report_to": report_to,
             # Add other fields...
         }
         job_profiles.append(profile)

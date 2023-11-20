@@ -11,14 +11,21 @@
     </div>
     
     <div>
-        <label for="job_name">job Name:</label>
-        <input type="text" id="job_name" name="job_name" value="{{ profile['job_name'] }}" required>
+        <label for="job_title">Job Title:</label>
+        <input type="text" id="job_title" name="job_title" value="{{ profile['job_title'] }}" required>
     </div>
     <div>
-        <label for="employee_number">Account Number:</label>
-        <input type="number" id="employee_number" name="employee_number" value="{{ profile['employee_number'] }}" required>
+        <label for="report_to">Report To:</label>
+        <input type="text" id="report_to" name="report_to" value="{{ profile['report_to'] }}" required>
     </div>
-    <!-- Include other fields as necessary -->
+    <div>
+        <label for="have_reports">Does this role have reports?</label>
+        <select name="have_reports" id="have_reports" value="{{ profile['have_reports'] }}">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+    </div>
+
     <button type="submit">Save Changes</button>
 </form>
 

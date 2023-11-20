@@ -18,7 +18,7 @@
                             <a href="{{ url_for('index', sort='asc') }}">↑</a>
                             <a href="{{ url_for('index', sort='desc') }}">↓</a>
                         </th>
-                        <th style="padding: 8px; text-align: left;">Job Name</th>
+                        <th style="padding: 8px; text-align: left;">Job Title</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -31,7 +31,7 @@
                             </td>
                             <td style="padding: 8px;">
                                 <a href="{{ url_for('view_job_profile', job_id=profile.job_id) }}" style="text-decoration: none; color: #333;">
-                                    {{ profile.job_name }}
+                                    {{ profile.job_title }}
                                 </a>
                             </td>
                         </tr>
