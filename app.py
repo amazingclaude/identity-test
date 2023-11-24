@@ -211,6 +211,7 @@ def save_job_profiles(profiles):
 @app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
 def job_profile(job_id):
     job_profiles = load_job_profiles()
+
     existing_ids = set(p["job_id"] for p in job_profiles)
 
     #Check if it is new job creation, the logic will make job_id+1 if job_id!=None, hence a supplement condition added (job_id in existing_ids): 
@@ -233,7 +234,9 @@ def job_profile(job_id):
 
     profile['fixed_term_reason']='Not Available'
     profile['pay_contractor']='Not Available'
-    profile['generated_ad']=''
+
+    if 'generated_ad' not in profile:
+        profile['generated_ad']=''
 
     if request.method == 'POST':
         profile['job_title'] = request.form.get('job_title')
@@ -266,11 +269,7 @@ def job_profile(job_id):
 def view_job_profile(job_id): 
     job_profiles = load_job_profiles() 
 
-    print("Loaded profiles:", job_profiles)
-
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
-
-    print("Found profile:", profile)
 
     if profile:
         return render_template("view_job_profile.html", profile=profile, user=session["user"])
@@ -315,26 +314,59 @@ def call_azure_open_ai(job_profile_description):
     generated_ad = response.get("choices")[0]['message']['content']
     return generated_ad
 
-@app.route("/create_job_ad/<int:job_id>")
-def create_job_ad(job_id):
+def generate_job_ad(profile):
+    job_profile_description = f"""
+    Based on the job profile provided, generate job advertisement in plain text.
+    Job Title: {profile.get('job_title', '')}
+    Responsibilities: {profile.get('job_reponsibilities', '')}
+    Ideal Candidate: {profile.get('ideal_candidate', '')}
+    Salary Range: {profile.get('salary_range_min', '')} - {profile.get('salary_range_max', '')}
+    Working Hours: {profile.get('working_hours', '')}
+    Location: {profile.get('job_location', '')}
+    Additional Notes: {profile.get('additional_notes', '')}
+    """
+    return call_azure_open_ai(job_profile_description)
+
+
+@app.route("/regenerate_job_ad/<int:job_id>")
+def regenerate_job_ad(job_id):
     job_profiles = load_job_profiles()
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
     if not profile:
         return "Job profile not found", 404
+
+    generated_ad = generate_job_ad(profile)
+    profile['generated_ad'] = generated_ad
+    save_job_profiles(job_profiles)
+
+    html_content = generated_ad.replace("\n", "<br>")
+    return render_template("job_ad.html", job_ad=html_content, job_id=job_id)
+
+
+@app.route("/create_job_ad/<int:job_id>")
+def create_job_ad(job_id):
+    
+    job_profiles = load_job_profiles()
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+
+    cashed_job_profiles = session.get('profiles', job_profiles)
+    cached_profile=next((p for p in cashed_job_profiles if p["job_id"] == job_id), None)
+
+    if not profile:
+        return "Job profile not found", 404
+    
+    # Exclude 'generated_ad' from the comparison
+    excluded_key = 'generated_ad'
+
+    # Compare the dictionaries, excluding the specified key
+    if cached_profile:
+        profile_updated_indicator = 0 if all(profile[k] == cached_profile.get(k) for k in profile if k != excluded_key) else 1
+    else:
+        profile_updated_indicator = 0
     
     if profile['generated_ad'] == '':
-        job_profile_description = f"""
-        Based on the job profile provided, generate job advertisement in plain text.
-        Job Title: {profile.get('job_title', '')}
-        Responsibilities: {profile.get('job_reponsibilities', '')}
-        Ideal Candidate: {profile.get('ideal_candidate', '')}
-        Salary Range: {profile.get('salary_range_min', '')} - {profile.get('salary_range_max', '')}
-        Working Hours: {profile.get('working_hours', '')}
-        Location: {profile.get('job_location', '')}
-        Additional Notes: {profile.get('additional_notes', '')}
-        """
-        generated_ad=call_azure_open_ai(job_profile_description)
+        generated_ad = generate_job_ad(profile)
         profile['generated_ad'] = generated_ad
         save_job_profiles(job_profiles)
 
@@ -342,8 +374,10 @@ def create_job_ad(job_id):
     
     else:
         html_content = profile['generated_ad'].replace("\n", "<br>")
-
-    return render_template("job_ad.html", job_ad=html_content, job_id=job_id)
+    
+    #Capture the profiles' state before rendering the page
+    session['profiles'] = copy.deepcopy(job_profiles)  # Use deepcopy to store a copy of the profile
+    return render_template("job_ad.html", job_ad=html_content, job_id=job_id,profile_updated_indicator=profile_updated_indicator)
 
 @app.route("/edit_job_ad/<int:job_id>", methods=["GET", "POST"])
 def edit_job_ad(job_id):

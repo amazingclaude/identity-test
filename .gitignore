@@ -1,1 +1,6 @@
 **/.env
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore all .ipynb files (if you want to ignore all Jupyter Notebooks, uncomment the next line)
+*.ipynb
