@@ -6,6 +6,10 @@ import msal
 import app_config
 import json
 import os
+import openai
+import copy
+from dotenv import load_dotenv
+load_dotenv()  # This loads the .env file at the project root
 
 app = Flask(__name__)
 app.config.from_object(app_config)
@@ -203,7 +207,6 @@ def save_job_profiles(profiles):
     with open(get_profile_file_path(), 'w') as file:
         json.dump(profiles, file, indent=4)
 
-
 @app.route("/job_profile", defaults={'job_id': None}, methods=['GET', 'POST'])
 @app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
 def job_profile(job_id):
@@ -228,12 +231,30 @@ def job_profile(job_id):
         if not new_job_id in existing_ids:
             job_profiles.append(profile)
 
+    profile['fixed_term_reason']='Not Available'
+    profile['pay_contractor']='Not Available'
+    profile['generated_ad']=''
 
     if request.method == 'POST':
         profile['job_title'] = request.form.get('job_title')
         profile['report_to'] = request.form.get('report_to')
         profile['have_reports'] = request.form.get('have_reports')
-
+        profile['vacancy_number'] = request.form.get('vacancy_number')
+        profile['job_reponsibilities'] = request.form.get('job_reponsibilities')
+        profile['ideal_candidate'] = request.form.get('ideal_candidate')
+        profile['other_info'] = request.form.get('other_info')
+        profile['full_or_parttime'] = request.form.get('full_or_parttime')
+        profile['job_type'] = request.form.get('job_type')
+        profile['fixed_term_reason'] = request.form.get('fixed_term_reason')
+        profile['pay_contractor'] = request.form.get('pay_contractor')
+        profile['salary_range_min'] = request.form.get('salary_range_min')
+        profile['salary_range_max'] = request.form.get('salary_range_max')
+        profile['working_hours'] = request.form.get('working_hours')
+        profile['working_days'] = request.form.get('working_days')
+        profile['work_arrangement'] = request.form.get('work_arrangement')
+        profile['job_location'] = request.form.get('job_location')
+        profile['visa_sponsor'] = request.form.get('visa_sponsor')
+        profile['additional_note'] = request.form.get('additional_note')
         save_job_profiles(job_profiles)
 
         return redirect(url_for('view_job_profile', job_id=job_id))
@@ -262,6 +283,92 @@ def delete_job_profile(job_id):
     job_profiles = [profile for profile in job_profiles if profile["job_id"] != job_id]
     save_job_profiles(job_profiles)
     return redirect(url_for('index'))
+
+
+
+def call_azure_open_ai(job_profile_description):
+    openai.api_key = os.getenv("AZURE_OPENAI_KEY")
+    openai.api_base = os.getenv("AZURE_OPENAI_ENDPOINT") # your endpoint should look like the following https://YOUR_RESOURCE_NAME.openai.azure.com/
+    openai.api_type = 'azure'
+    openai.api_version = '2023-07-01-preview' # this might change in the future
+
+    deployment_name='zispire_openai' #This will correspond to the custom name you chose for your deployment when you deployed a model. 
+    message_text = [{"role":"system",
+                     "content":"You are a Job Recruiter Assistant that helps HR to generate job advertisement."},
+                    {"role":"user",
+                    "content":job_profile_description}
+                     ]
+
+    # Make a POST request to Azure OpenAI's GPT model with the job profile description
+    response = openai.ChatCompletion.create(
+        engine=deployment_name,
+        messages=message_text,
+        temperature=0.7,
+        max_tokens=1000,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None
+        # stop=["\n", "Human:", "AI:"]
+    )
+
+    generated_ad = response.get("choices")[0]['message']['content']
+    return generated_ad
+
+@app.route("/create_job_ad/<int:job_id>")
+def create_job_ad(job_id):
+    job_profiles = load_job_profiles()
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+
+    if not profile:
+        return "Job profile not found", 404
+    
+    if profile['generated_ad'] == '':
+        job_profile_description = f"""
+        Based on the job profile provided, generate job advertisement in plain text.
+        Job Title: {profile.get('job_title', '')}
+        Responsibilities: {profile.get('job_reponsibilities', '')}
+        Ideal Candidate: {profile.get('ideal_candidate', '')}
+        Salary Range: {profile.get('salary_range_min', '')} - {profile.get('salary_range_max', '')}
+        Working Hours: {profile.get('working_hours', '')}
+        Location: {profile.get('job_location', '')}
+        Additional Notes: {profile.get('additional_notes', '')}
+        """
+        generated_ad=call_azure_open_ai(job_profile_description)
+        profile['generated_ad'] = generated_ad
+        save_job_profiles(job_profiles)
+
+        html_content = generated_ad.replace("\n", "<br>")
+    
+    else:
+        html_content = profile['generated_ad'].replace("\n", "<br>")
+
+    return render_template("job_ad.html", job_ad=html_content, job_id=job_id)
+
+@app.route("/edit_job_ad/<int:job_id>", methods=["GET", "POST"])
+def edit_job_ad(job_id):
+    job_profiles = load_job_profiles()  # Load your job profiles
+
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+
+    if not profile:
+        return "Job profile not found", 404
+
+    if request.method == "POST":
+        # Update the 'generated_ad' in the profile with the new content from the form
+        profile['generated_ad'] = request.form['generated_ad_content']
+
+        # Save the updated profiles back to your storage
+        save_job_profiles(job_profiles)
+
+        edited_ad= copy.deepcopy(profile['generated_ad'])
+        html_content = edited_ad.replace("\n", "<br>")
+        # Redirect to the view page or somewhere else after saving
+        return render_template("job_ad.html", job_ad=html_content, job_id=job_id)
+
+    return render_template("edit_job_ad.html", profile=profile)
+ 
+
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 

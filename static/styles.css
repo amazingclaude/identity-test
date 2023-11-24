@@ -59,3 +59,18 @@ footer p {
     margin: 0; /* Keeps the current margin setting */
     padding-left: 20px; /* Adds space to the left inside the footer */
 }
+
+.job-ad-container {
+    background-color: #f8f9fa; /* Light background for the container */
+    padding: 20px; /* Padding around the content */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    margin: 20px 0; /* Margin for top and bottom */
+    line-height: 1.6; /* Improved line height for readability */
+}
+
+.job-ad-container p {
+    margin: 0 0 20px; /* Margin for paragraphs */
+}
+
+/* Additional styling if needed */

@@ -8,12 +8,34 @@
     <p><strong>job ID:</strong> {{ profile.job_id }}</p>
     <p><strong>Job Title:</strong> {{ profile.job_title }}</p>
     <p><strong>Report To:</strong> {{ profile.report_to }}</p>
-    <!-- Add more fields as needed -->
+    <p><strong>Have Reports:</strong> {{ profile.have_reports }}</p>
+    <p><strong>Vacancy Number:</strong> {{ profile.vacancy_number }}</p>
+    <p><strong>Job Responsibilities:</strong> {{ profile.job_reponsibilities }}</p>
+    <p><strong>Ideal Candidate:</strong> {{ profile.ideal_candidate }}</p>
+    <p><strong>Other Info:</strong> {{ profile.other_info }}</p>
+    <p><strong>Full or Parttime:</strong> {{ profile.full_or_parttime }}</p>
+    <p><strong>Job Type:</strong>   {{ profile.job_type }}</p>
+    <p><strong>Fixed Term Reason:</strong> {{ profile.fixed_term_reason }}</p>
+    <p><strong>Pay Contractor:</strong> {{ profile.pay_contractor }}</p>
+    <p><strong>Salary Range:</strong> {{ profile.salary_range_min }} - {{ profile.salary_range_max }}</p>
+    <p><strong>Working Hours:</strong> {{ profile.working_hours }}</p>
+    <p><strong>Working Days:</strong> {{ profile.working_days }}</p>
+    <p><strong>Work Arrangement:</strong> {{ profile.work_arrangement }}</p>
+    <p><strong>Job Location:</strong> {{ profile.job_location }}</p>
+    <p><strong>Visa Sponsor:</strong> {{ profile.visa_sponsor }}</p>
+    <p><strong>Additional Notes:</strong> {{ profile.additional_notes }}</p>
+
 </div>
 
 <div>
     <a href="{{ url_for('job_profile', job_id=profile['job_id']) }}">
         <button>Edit Job Profile</button>
+    </a>
+</div>
+
+<div>
+    <a href= "{{ url_for('create_job_ad', job_id=profile['job_id']) }}">
+        <button>Hire a Recruiter Now</button>
     </a>
 </div>
 

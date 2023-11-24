@@ -46,3 +46,11 @@ def job_profile():
 
     # Render the form page if method is GET
     return render_template('job_profile.html')
+
+
+
+
+
+    PROMPT IDEAS
+
+         # The ad should include <h2> for the job title, <p> tags for paragraphs, and <ul> with <li> for lists.
