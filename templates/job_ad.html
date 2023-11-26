@@ -23,7 +23,14 @@
     <div class="job-ad-container">
         <p>{{ job_ad | safe }}</p>
     </div>
-    
+
+    <!-- Approve Button -->
+    <div>
+        <a href="{{ url_for('payment', job_id=job_id) }}">
+            <button>Approve Job Ad</button>
+        </a>    
+    </div>
+
     <!-- Edit Button -->
     <div>
         <a href="{{ url_for('edit_job_ad', job_id=job_id) }}">

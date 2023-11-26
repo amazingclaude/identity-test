@@ -360,7 +360,6 @@ def create_job_ad(job_id):
     if not profile:
         return "Job profile not found", 404
     
-
     # Check if the profile has been updated since the last time the job ad was generated
     # If yes, set the profile_updated_indicator to 1, otherwise 0
     # This is to prevent the job ad from being regenerated when the user clicks on the 'Create Job Ad' button
@@ -384,6 +383,7 @@ def create_job_ad(job_id):
 
 @app.route("/edit_job_ad/<int:job_id>", methods=["GET", "POST"])
 def edit_job_ad(job_id):
+    user=session["user"]
     job_profiles = load_job_profiles()  # Load your job profiles
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
@@ -408,8 +408,11 @@ def edit_job_ad(job_id):
         # Redirect to the view page or somewhere else after saving
         return render_template("job_ad.html", job_ad=html_content, job_id=job_id, profile_updated_indicator=profile_updated_indicator)
 
-    return render_template("edit_job_ad.html", profile=profile)
- 
+    return render_template("edit_job_ad.html", profile=profile, user=user)
+@app.route("/payment/<int:job_id>")
+def payment(job_id):
+    user=session["user"]
+    return render_template("payment.html", job_id=job_id, user=user)
 
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
