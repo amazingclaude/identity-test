@@ -13,9 +13,11 @@
             <button>Regenerate Job Ad</button>
         </a>
     </div>
+    {% else %}
+    <p>We have created the job advertisement for you. Please review and edit if necessary.</p>
     {% endif %}
 
-    <p>We have created the job advertisement for you. Please review and edit if necessary.</p>
+    
 
     <div class="job-ad-container">
         <p>{{ job_ad | safe }}</p>

@@ -173,7 +173,6 @@ def edit_company_profile():
         # Update other fields as necessary
         
 
-
         save_company_profile(company_profile)
         return redirect(url_for('view_company_profile'))
 
@@ -215,23 +214,29 @@ def job_profile(job_id):
     existing_ids = set(p["job_id"] for p in job_profiles)
 
     #Check if it is new job creation, the logic will make job_id+1 if job_id!=None, hence a supplement condition added (job_id in existing_ids): 
-    if job_id is not None and job_id in existing_ids:
+    if job_id is not None and job_id in existing_ids: 
+        #Create a new_create_job_indicator flag to deliver to job_profile.html, to give Cancel button two choices, either back to view page or back to index page.
+        new_create_job_indicator=0       
         # Editing an existing profile
         profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
-        #Create a new_create_session flag to deliver to job_profile.html, to give Cancel button two choices, either back to view page or back to index page.
-        new_create_session=0
         if not profile:
             return "Profile not found", 404
     else:
+        #Create a new_create_job_indicator flag to deliver to job_profile.html, to give Cancel button two choices, either back to view page or back to index page.
+        new_create_job_indicator=1
+
         # Creating a new profile
         new_job_id = 1
         while new_job_id in existing_ids:
             new_job_id += 1
-        profile = {"job_id": new_job_id, "job_title": "", "report_to": "", "have_reports": "No"}
-        new_create_session=1
+            
+        #Assign new job_id to the newly created profile
+        profile = {"job_id": new_job_id}
+        
         if not new_job_id in existing_ids:
             job_profiles.append(profile)
 
+    #Assign values to hidden fields
     profile['fixed_term_reason']='Not Available'
     profile['pay_contractor']='Not Available'
 
@@ -239,29 +244,32 @@ def job_profile(job_id):
         profile['generated_ad']=''
 
     if request.method == 'POST':
-        profile['job_title'] = request.form.get('job_title')
-        profile['report_to'] = request.form.get('report_to')
-        profile['have_reports'] = request.form.get('have_reports')
-        profile['vacancy_number'] = request.form.get('vacancy_number')
-        profile['job_reponsibilities'] = request.form.get('job_reponsibilities')
-        profile['ideal_candidate'] = request.form.get('ideal_candidate')
-        profile['other_info'] = request.form.get('other_info')
-        profile['full_or_parttime'] = request.form.get('full_or_parttime')
-        profile['job_type'] = request.form.get('job_type')
-        profile['fixed_term_reason'] = request.form.get('fixed_term_reason')
-        profile['pay_contractor'] = request.form.get('pay_contractor')
-        profile['salary_range_min'] = request.form.get('salary_range_min')
-        profile['salary_range_max'] = request.form.get('salary_range_max')
-        profile['working_hours'] = request.form.get('working_hours')
-        profile['working_days'] = request.form.get('working_days')
-        profile['work_arrangement'] = request.form.get('work_arrangement')
-        profile['job_location'] = request.form.get('job_location')
-        profile['visa_sponsor'] = request.form.get('visa_sponsor')
-        profile['additional_note'] = request.form.get('additional_note')
+        # Update profile fields
+        for field in ['job_title', 
+                      'report_to', 
+                      'have_reports', 
+                      'vacancy_number', 
+                      'job_reponsibilities', 
+                      'ideal_candidate', 
+                      'other_info', 
+                      'full_or_parttime', 
+                      'job_type', 
+                      'fixed_term_reason', 
+                      'pay_contractor', 
+                      'salary_range_min', 
+                      'salary_range_max', 
+                      'working_hours', 
+                      'working_days', 
+                      'work_arrangement', 
+                      'job_location', 
+                      'visa_sponsor', 
+                      'additional_note']:
+            profile[field] = request.form.get(field)
+        
         save_job_profiles(job_profiles)
 
         return redirect(url_for('view_job_profile', job_id=job_id))
-    return render_template("job_profile.html", profile=profile, user=session["user"],new_create_session=new_create_session)
+    return render_template("job_profile.html", profile=profile, user=session["user"],new_create_job_indicator=new_create_job_indicator)
 
 
 
@@ -328,7 +336,7 @@ def generate_job_ad(profile):
     return call_azure_open_ai(job_profile_description)
 
 
-@app.route("/regenerate_job_ad/<int:job_id>")
+@app.route("/create_job_ad/regenerate/<int:job_id>")
 def regenerate_job_ad(job_id):
     job_profiles = load_job_profiles()
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
@@ -364,19 +372,20 @@ def create_job_ad(job_id):
         profile_updated_indicator = 0 if all(profile[k] == cached_profile.get(k) for k in profile if k != excluded_key) else 1
     else:
         profile_updated_indicator = 0
-    
+
+    # Store a copy of the job profiles before going to the job ad page
+    session['profiles'] = copy.deepcopy(job_profiles)  # Use deepcopy to store a copy of the profile
+
+    # Check if 'generated_ad' is empty, if yes, generate the job ad
     if profile['generated_ad'] == '':
         generated_ad = generate_job_ad(profile)
         profile['generated_ad'] = generated_ad
         save_job_profiles(job_profiles)
-
         html_content = generated_ad.replace("\n", "<br>")
     
     else:
         html_content = profile['generated_ad'].replace("\n", "<br>")
     
-    #Capture the profiles' state before rendering the page
-    session['profiles'] = copy.deepcopy(job_profiles)  # Use deepcopy to store a copy of the profile
     return render_template("job_ad.html", job_ad=html_content, job_id=job_id,profile_updated_indicator=profile_updated_indicator)
 
 @app.route("/edit_job_ad/<int:job_id>", methods=["GET", "POST"])
