@@ -1,37 +1,26 @@
 [
     {
         "job_id": 1,
-        "job_title": "AI Consultant",
-        "report_to": "Manager",
-        "have_reports": "Yes",
-        "generated_ad": "TESTT\r\nWe're looking for an AI Consultant to join our team. As an AI Consultant, you will be responsible for providing expert guidance and support in the implementation of AI solutions. The ideal candidate should have a strong background in artificial intelligence, machine learning, and data analytics. \r\n\r\nSalary Range: $150,000 - $600,000\r\nWorking Hours: 38 hours per week\r\n\r\nIf you are passionate about AI and have the expertise to drive AI initiatives, we would love to hear from you. Join us in our mission to leverage AI for innovation and growth. This position is located in [Location]. Apply now to be part of our dynamic team!",
+        "profile_updated_at": "2023-11-26T21:16:57.892046",
+        "generated_ad": "Sure, here's a job advertisement for the AI Consultant position:\n\n---\n\nJob Title: AI Consultant\n\nWe are seeking a highly skilled and experienced AI Consultant to join our team. As an AI Consultant, you will be responsible for developing and implementing AI solutions to meet our clients' needs. You will work closely with our clients to understand their requirements and provide expert advice on AI technologies and strategies.\n\nResponsibilities:\n- Collaborate with clients to understand their business needs and develop AI solutions to address them\n- Design and implement AI algorithms and models to solve complex business problems\n- Provide technical expertise and guidance on AI best practices and industry trends\n- Work with cross-functional teams to integrate AI solutions into existing systems\n- Stay updated with the latest developments in AI and continuously improve our AI capabilities\n\nIdeal Candidate:\n- Bachelor's or Master's degree in computer science, engineering, or related field\n- Proven experience in developing and implementing AI solutions\n- Strong programming skills in languages such as Python, R,",
         "fixed_term_reason": "",
         "pay_contractor": "Yes",
-        "vacancy_number": "4",
-        "job_reponsibilities": " ",
-        "ideal_candidate": " ",
-        "other_info": " ",
+        "job_title": "AI Consultant",
+        "report_to": "",
+        "have_reports": "Yes",
+        "vacancy_number": "3",
+        "job_reponsibilities": "",
+        "ideal_candidate": "",
+        "other_info": "",
         "full_or_parttime": "Full_Time",
         "job_type": "Permanent",
-        "salary_range_min": "150",
-        "salary_range_max": "650",
-        "working_hours": "38",
-        "working_days": "24",
+        "salary_range_min": "2000",
+        "salary_range_max": "3000",
+        "working_hours": "",
+        "working_days": "",
         "work_arrangement": "On_Site",
-        "job_location": " ",
+        "job_location": "",
         "visa_sponsor": "Yes",
-        "additional_note": " "
-    },
-    {
-        "job_id": 3,
-        "job_title": "AI Consultant3",
-        "report_to": "Manager",
-        "have_reports": "Yes"
-    },
-    {
-        "job_id": 2,
-        "job_title": "AI Consultant2",
-        "report_to": "Manager",
-        "have_reports": "Yes"
+        "additional_note": ""
     }
 ]

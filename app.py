@@ -8,6 +8,7 @@ import json
 import os
 import openai
 import copy
+from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()  # This loads the .env file at the project root
 
@@ -229,43 +230,39 @@ def job_profile(job_id):
         new_job_id = 1
         while new_job_id in existing_ids:
             new_job_id += 1
-            
+
         #Assign new job_id to the newly created profile
-        profile = {"job_id": new_job_id}
-        
+        profile = {"job_id": new_job_id, 
+                   'profile_updated_at': 0, 
+                   'generated_ad': '', 
+                   'fixed_term_reason': 'Not Available', 
+                   'pay_contractor': 'Not Available', }
+
         if not new_job_id in existing_ids:
             job_profiles.append(profile)
 
-    #Assign values to hidden fields
-    profile['fixed_term_reason']='Not Available'
-    profile['pay_contractor']='Not Available'
-
-    if 'generated_ad' not in profile:
-        profile['generated_ad']=''
+    # Store the last update time before editing
+    session['last_update_time_before_editing'] = profile['profile_updated_at']  
 
     if request.method == 'POST':
+        profile_updated = False  # Flag to track changes
+
         # Update profile fields
-        for field in ['job_title', 
-                      'report_to', 
-                      'have_reports', 
-                      'vacancy_number', 
-                      'job_reponsibilities', 
-                      'ideal_candidate', 
-                      'other_info', 
-                      'full_or_parttime', 
-                      'job_type', 
-                      'fixed_term_reason', 
-                      'pay_contractor', 
-                      'salary_range_min', 
-                      'salary_range_max', 
-                      'working_hours', 
-                      'working_days', 
-                      'work_arrangement', 
-                      'job_location', 
-                      'visa_sponsor', 
-                      'additional_note']:
-            profile[field] = request.form.get(field)
-        
+        for field in ['job_title', 'report_to', 'have_reports', 'vacancy_number', 
+                    'job_reponsibilities', 'ideal_candidate', 'other_info', 
+                    'full_or_parttime', 'job_type', 'fixed_term_reason', 
+                    'pay_contractor', 'salary_range_min', 'salary_range_max', 
+                    'working_hours', 'working_days', 'work_arrangement', 
+                    'job_location', 'visa_sponsor', 'additional_note']:
+            # Check if the field is not in the profile or if the field is in the profile but the value is different from the form
+            if field not in profile or profile.get(field) != request.form.get(field):  
+                profile[field] = request.form.get(field)
+                profile_updated = True  # Set the flag to True if any field is updated
+
+        # Update the profile_updated_at field if any changes were made
+        if profile_updated:
+            profile['profile_updated_at'] = datetime.utcnow().isoformat()
+
         save_job_profiles(job_profiles)
 
         return redirect(url_for('view_job_profile', job_id=job_id))
@@ -311,7 +308,7 @@ def call_azure_open_ai(job_profile_description):
         engine=deployment_name,
         messages=message_text,
         temperature=0.7,
-        max_tokens=1000,
+        max_tokens=200,
         top_p=0.95,
         frequency_penalty=0,
         presence_penalty=0,
@@ -324,7 +321,7 @@ def call_azure_open_ai(job_profile_description):
 
 def generate_job_ad(profile):
     job_profile_description = f"""
-    Based on the job profile provided, generate job advertisement in plain text.
+    Based on the job profile provided, generate job advertisement in plain text. Only show the generated job advertisement in your answer.
     Job Title: {profile.get('job_title', '')}
     Responsibilities: {profile.get('job_reponsibilities', '')}
     Ideal Candidate: {profile.get('ideal_candidate', '')}
@@ -347,7 +344,7 @@ def regenerate_job_ad(job_id):
     generated_ad = generate_job_ad(profile)
     profile['generated_ad'] = generated_ad
     save_job_profiles(job_profiles)
-
+    session['last_update_time_before_editing'] = profile['profile_updated_at']
     html_content = generated_ad.replace("\n", "<br>")
     return render_template("job_ad.html", job_ad=html_content, job_id=job_id)
 
@@ -358,23 +355,20 @@ def create_job_ad(job_id):
     job_profiles = load_job_profiles()
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
-    cashed_job_profiles = session.get('profiles', job_profiles)
-    cached_profile=next((p for p in cashed_job_profiles if p["job_id"] == job_id), None)
+
 
     if not profile:
         return "Job profile not found", 404
     
-    # Exclude 'generated_ad' from the comparison
-    excluded_key = 'generated_ad'
 
-    # Compare the dictionaries, excluding the specified key
-    if cached_profile:
-        profile_updated_indicator = 0 if all(profile[k] == cached_profile.get(k) for k in profile if k != excluded_key) else 1
-    else:
+    # Check if the profile has been updated since the last time the job ad was generated
+    # If yes, set the profile_updated_indicator to 1, otherwise 0
+    # This is to prevent the job ad from being regenerated when the user clicks on the 'Create Job Ad' button
+    # The job ad will only be regenerated when the user clicks on the 'Regenerate Job Ad' button
+    if profile['profile_updated_at'] != session['last_update_time_before_editing'] and session['last_update_time_before_editing'] != 0 :
+        profile_updated_indicator = 1
+    else:    
         profile_updated_indicator = 0
-
-    # Store a copy of the job profiles before going to the job ad page
-    session['profiles'] = copy.deepcopy(job_profiles)  # Use deepcopy to store a copy of the profile
 
     # Check if 'generated_ad' is empty, if yes, generate the job ad
     if profile['generated_ad'] == '':
@@ -394,6 +388,11 @@ def edit_job_ad(job_id):
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
+    if profile['profile_updated_at'] != session['last_update_time_before_editing'] and session['last_update_time_before_editing'] != 0 :
+        profile_updated_indicator = 1
+    else:    
+        profile_updated_indicator = 0
+
     if not profile:
         return "Job profile not found", 404
 
@@ -407,7 +406,7 @@ def edit_job_ad(job_id):
         edited_ad= copy.deepcopy(profile['generated_ad'])
         html_content = edited_ad.replace("\n", "<br>")
         # Redirect to the view page or somewhere else after saving
-        return render_template("job_ad.html", job_ad=html_content, job_id=job_id)
+        return render_template("job_ad.html", job_ad=html_content, job_id=job_id, profile_updated_indicator=profile_updated_indicator)
 
     return render_template("edit_job_ad.html", profile=profile)
  

@@ -18,7 +18,7 @@
 
     <div>
         <label for="report_to">Report To:</label>
-        <input type="text" id="report_to" name="report_to" value="{{ profile['report_to'] }}" required>
+        <input type="text" id="report_to" name="report_to" value="{{ profile['report_to'] }}" >
     </div>
 
     <div>
@@ -37,17 +37,17 @@
 
     <div>
         <label for="job_reponsibilities"> In your own words, describe the key job responsibilities of this role:</label>
-        <textarea id="job_reponsibilities" name="job_reponsibilities" rows="4" cols="50" required>{{ profile['job_reponsibilities'] }}</textarea>
+        <textarea id="job_reponsibilities" name="job_reponsibilities" rows="4" cols="50" >{{ profile['job_reponsibilities'] }}</textarea>
     </div>
 
     <div>
         <label for="ideal_candidate"> In your own words, describle your ideal candidate, including experience and qualification required:</label>
-        <textarea id="ideal_candidate" name="ideal_candidate" rows="4" cols="50" required>{{ profile['ideal_candidate'] }}</textarea>
+        <textarea id="ideal_candidate" name="ideal_candidate" rows="4" cols="50" >{{ profile['ideal_candidate'] }}</textarea>
     </div>
 
     <div>
         <label for="other_info"> What else is also important for the role or the candidate?</label>
-        <textarea id="other_info" name="other_info" rows="4" cols="50" required>{{ profile['other_info'] }}</textarea>
+        <textarea id="other_info" name="other_info" rows="4" cols="50" >{{ profile['other_info'] }}</textarea>
     </div>
 
     <div>
@@ -87,21 +87,21 @@
     <div>
         <label for="salary_range">Salary Range:</label> 
         <p>Min</p> 
-        <input type="number" id="salary_range_min" name="salary_range_min" value="{{ profile['salary_range_min'] }}" min="1" max="999999" required>
+        <input type="number" id="salary_range_min" name="salary_range_min" value="{{ profile['salary_range_min'] }}" min="1" max="999999" >
         <p>Max</p>
-        <input type="number" id="salary_range_max" name="salary_range_max" value="{{ profile['salary_range_max'] }}" min="1" max="999999" required>
+        <input type="number" id="salary_range_max" name="salary_range_max" value="{{ profile['salary_range_max'] }}" min="1" max="999999" >
     </div>
 
     <!-- Working Hours -->
     <div>
         <label for="working_hours">Working Hours:</label>
-        <input type="number" id="working_hours" name="working_hours" value="{{ profile['working_hours'] }}" min="1" max="999999" required>
+        <input type="number" id="working_hours" name="working_hours" value="{{ profile['working_hours'] }}" min="1" max="999999" >
     </div>
 
     <!-- Working Days -->
     <div>
         <label for="working_days">Working Days:</label>
-        <input type="number" id="working_days" name="working_days" value="{{ profile['working_days'] }}" min="1" max="999999" required>
+        <input type="number" id="working_days" name="working_days" value="{{ profile['working_days'] }}" min="1" max="999999" >
     </div>
 
     <!-- Work Arragnment, On Site, Remote or Hybrid -->
@@ -117,7 +117,7 @@
     <!-- Job Location -->
     <div>
         <label for="job_location">Job Location:</label>
-        <input type="text" id="job_location" name="job_location" value="{{ profile['job_location'] }}" required>
+        <input type="text" id="job_location" name="job_location" value="{{ profile['job_location'] }}" >
     </div>
 
     <!--Visa Sponsor: Do you sponsor a visa for this role? -->
@@ -132,7 +132,7 @@
     <!-- Any additional note to the recruiter -->
     <div>
         <label for="additional_note">Any additional note to the recruiter:</label>
-        <textarea id="additional_note" name="additional_note" rows="4" cols="50" required>{{ profile['additional_note'] }}</textarea>
+        <textarea id="additional_note" name="additional_note" rows="4" cols="50" >{{ profile['additional_note'] }}</textarea>
     </div>
     
     <button type="submit"> Save </button>
