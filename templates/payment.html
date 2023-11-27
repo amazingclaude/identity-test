@@ -3,46 +3,50 @@
 {% block content %}
 
  <!-- Payment Page, Information are not coming from profile-->
-    <h3>Payment</h3>
-    <form action="{{ url_for('payment', job_id=job_id) }}" method="post">
-        <div>
-            <label for="card_number">Card Number:</label>
-            <input type="text" id="card_number" name="card_number"  required>
-        </div>
-        <div>
-            <label for="card_holder_name">Card Holder Name:</label>
-            <input type="text" id="card_holder_name" name="card_holder_name"  required>
-        </div>
-        <div>
-            <label for="expiry_date">Expiry Date:</label>
-            <input type="text" id="expiry_date" name="expiry_date"  required>
-        </div>  
-        <div>
-            <label for="cvv">CVV:</label>
-            <input type="text" id="cvv" name="cvv"  required>
-        </div>
-        <div>
-            <label for="billing_address">Billing Address:</label>
-            <input type="text" id="billing_address" name="billing_address"  required>
-        </div>
-        <div>
-            <label for="billing_city">Billing City:</label>
-            <input type="text" id="billing_city" name="billing_city"  required>
-        </div>
-        <div>
-            <label for="billing_country">Billing Country:</label>
-            <input type="text" id="billing_country" name="billing_country"  required>
-        </div>
-        <div>
-            <label for="billing_postal_code">Billing Postal Code:</label>
-            <input type="text" id="billing_postal_code" name="billing_postal_code"  required>
-        </div>
+ <table>
+    <tr>
+      <th>Service Type</th>
+      <th>Standard Service</th>
+      <th>Premium Service</th>
+    </tr>
+    <tr>
+      <td>Single Req</td>
+      <td onclick="selectPayment(this)">$4,399.99</td>
+      <td onclick="selectPayment(this)">$4,899.99</td>
+    </tr>
+    <tr>
+      <td>2 Reqs Pack</td>
+      <td onclick="selectPayment(this)">$8,199.98</td>
+      <td onclick="selectPayment(this)">$9,099.98</td>
+    </tr>
+    <tr>
+      <td>3 Reqs Pack</td>
+      <td onclick="selectPayment(this)">$11,999.97</td>
+      <td onclick="selectPayment(this)">$13,299.97</td>
+    </tr>
+  </table>
+  
+  <!-- You might want to add a form here to handle the payment after selection -->
+  <form id="paymentForm">
+    <!-- Hidden fields to store the selected payment information -->
+    <input type="hidden" id="selectedService" name="selectedService">
+    <input type="hidden" id="selectedAmount" name="selectedAmount">
+    <input type="submit" value="Pay Now">
+  </form>
 
-        <button type="submit">Pay</button>  
-    </form>
-    
-    <a href="{{ url_for('create_job_ad', job_id=job_id) }}">
-        <button>Cancel</button>
-    </a>
-
+   
+    <script>
+        function selectPayment(cell) {
+          // Deselect all cells
+          var cells = document.querySelectorAll('td');
+          cells.forEach(function (td) {
+            td.classList.remove('selected');
+          });
+      
+          // Select the clicked cell
+          cell.classList.add('selected');
+          
+          // You can also update some hidden form fields or perform other actions here
+        }
+      </script>
  {% endblock %}
