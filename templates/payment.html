@@ -39,7 +39,10 @@
         </div>
 
         <button type="submit">Pay</button>  
-        <button type="submit">Cancel</button>
     </form>
+    
+    <a href="{{ url_for('create_job_ad', job_id=job_id) }}">
+        <button>Cancel</button>
+    </a>
 
  {% endblock %}
