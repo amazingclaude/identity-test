@@ -5,9 +5,9 @@
 name: Build and deploy Python app to Azure Web App - zispire
 
 on:
-  push:
-    branches:
-      - job_profile
+  # push:
+  #   branches:
+  #     - job_profile
   workflow_dispatch:
 
 jobs:
