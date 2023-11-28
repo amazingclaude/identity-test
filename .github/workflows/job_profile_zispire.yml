@@ -5,9 +5,9 @@
 name: Build and deploy Python app to Azure Web App - zispire
 
 on:
-  # push:
-  #   branches:
-  #     - job_profile
+  push:
+    branches:
+      - job_profile
   workflow_dispatch:
 
 jobs:
@@ -21,10 +21,6 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: '3.10'
-       # Update pip
-      - name: Upgrade pip
-        run: |
-          python -m pip install --upgrade pip
 
       - name: Create and start virtual environment
         run: |
@@ -63,9 +59,6 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
-      - name: Upgrade pip
-        run: |
-          python -m pip install --upgrade pip
       
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
@@ -73,4 +66,4 @@ jobs:
         with:
           app-name: 'zispire'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_133912AC158740D787F47EB584D46338 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_DAB2D32C28FB40CD9D3A5BFE456C3517 }}
