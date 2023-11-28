@@ -346,7 +346,7 @@ def regenerate_job_ad(job_id):
     save_job_profiles(job_profiles)
     session['last_update_time_before_editing'] = profile['profile_updated_at']
     html_content = generated_ad.replace("\n", "<br>")
-    return render_template("job_ad.html", job_ad=html_content, job_id=job_id)
+    return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
 
 
 @app.route("/create_job_ad/<int:job_id>")
@@ -379,7 +379,7 @@ def create_job_ad(job_id):
     else:
         html_content = profile['generated_ad'].replace("\n", "<br>")
     
-    return render_template("job_ad.html", job_ad=html_content, job_id=job_id,profile_updated_indicator=profile_updated_indicator)
+    return render_template("job_ad.html", job_ad=html_content, job_id=job_id,profile_updated_indicator=profile_updated_indicator, user=session["user"])
 
 @app.route("/edit_job_ad/<int:job_id>", methods=["GET", "POST"])
 def edit_job_ad(job_id):
@@ -406,7 +406,7 @@ def edit_job_ad(job_id):
         edited_ad= copy.deepcopy(profile['generated_ad'])
         html_content = edited_ad.replace("\n", "<br>")
         # Redirect to the view page or somewhere else after saving
-        return render_template("job_ad.html", job_ad=html_content, job_id=job_id, profile_updated_indicator=profile_updated_indicator)
+        return render_template("job_ad.html", job_ad=html_content, job_id=job_id, profile_updated_indicator=profile_updated_indicator, user=user)
 
     return render_template("edit_job_ad.html", profile=profile, user=user)
 @app.route("/payment/<int:job_id>")
