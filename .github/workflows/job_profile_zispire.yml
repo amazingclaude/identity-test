@@ -5,9 +5,9 @@
 name: Build and deploy Python app to Azure Web App - zispire
 
 on:
-  # push:
-  #   branches:
-  #     - job_profile
+  push:
+    branches:
+      - job_profile
   workflow_dispatch:
 
 jobs:
@@ -73,4 +73,4 @@ jobs:
         with:
           app-name: 'zispire'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_133912AC158740D787F47EB584D46338 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_DAB2D32C28FB40CD9D3A5BFE456C3517 }}
