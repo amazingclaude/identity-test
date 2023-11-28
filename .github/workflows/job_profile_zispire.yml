@@ -4,6 +4,7 @@
 
 name: Build and deploy Python app to Azure Web App - zispire
 
+#Trigger on push to the job_profile branch
 on:
   push:
     branches:
