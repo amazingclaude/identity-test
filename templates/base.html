@@ -28,9 +28,11 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{{ url_for('index')}}">Home</a>
                     </li>
+                    {% if user %}
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{{ url_for('view_company_profile')}}">Company Profile</a>
                     </li>
+                    {% endif %}
             
                     <!-- <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('graphcall')}}">Graph API</a>
@@ -61,7 +63,7 @@
     </nav>
 
 
-    
+
     <div class="container body-content">
         <br />
         {% block content %}
