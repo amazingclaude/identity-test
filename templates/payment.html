@@ -25,15 +25,33 @@
       <td onclick="selectPayment(this)">$13,299.97</td>
     </tr>
   </table>
-  
+
+  <!-- 2 by 2 table -->
+  <table>
+
+    <tr>
+      <td>Premuim Servic</td>
+      <td>Standard service + personality tests, pre-employment drug and alcohol test, police clearance and credit check, and 1st day on boarding plan for free! </td>
+    </tr>
+    <tr>
+      <td>Standard Service</td>
+      <td>We cover all recruiting costs and manage you job requisition until an offer is accepted by a candidate.</td>
+    </tr>
+
+  </table>
   <!-- You might want to add a form here to handle the payment after selection -->
   <form id="paymentForm">
     <!-- Hidden fields to store the selected payment information -->
     <input type="hidden" id="selectedService" name="selectedService">
     <input type="hidden" id="selectedAmount" name="selectedAmount">
-    <input type="submit" value="Pay Now">
+    <button type="submit" > Pay Now </button>
   </form>
-
+   <!-- Cancel button -->
+    <div>
+          <a href="{{ url_for('view_job_profile', job_id=job_id) }}">
+              <button>Cancel</button>
+          </a>
+      </div>
    
     <script>
         function selectPayment(cell) {

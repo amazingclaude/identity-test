@@ -277,6 +277,12 @@ def view_job_profile(job_id):
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
+    # if session['last_update_time_before_editing'] does not exist, set it to profile['profile_updated_at']
+    # Because for user who signed out and signed back in, session is cleared, hence session['last_update_time_before_editing'] will not exist
+    if 'last_update_time_before_editing' not in session:
+        session['last_update_time_before_editing'] = profile['profile_updated_at']
+    
+
     if profile:
         return render_template("view_job_profile.html", profile=profile, user=session["user"])
     else:
