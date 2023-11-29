@@ -118,14 +118,15 @@ def _get_token_from_cache(scope=None):
 #*******************************
 #COMPANY PROFILE
 #*******************************
-
+#Information on sub: https://learn.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
+#It is the principal ID os the user, which is the unique identifier for the user account.
 
 def get_company_file_path():
     if has_request_context() and 'user' in session:
-        user_aud = session["user"].get("aud", "default")
+        user_sub = session["user"].get("sub", "default")
     else:
-        user_aud = "default"
-    directory = os.path.join("./database", user_aud)
+        user_sub = "default"
+    directory = os.path.join("./database", user_sub)
     if not os.path.exists(directory):
         os.makedirs(directory)
     return os.path.join(directory, 'company_profile.json')
@@ -186,11 +187,11 @@ def edit_company_profile():
 
 def get_profile_file_path():
     if has_request_context() and 'user' in session:
-        user_aud = session["user"].get("aud", "default")
+        user_sub = session["user"].get("sub", "default")
     else:
-        user_aud = "default"
+        user_sub = "default"
 
-    directory = os.path.join("./database", user_aud)
+    directory = os.path.join("./database", user_sub)
     if not os.path.exists(directory):
         os.makedirs(directory)
     return os.path.join(directory, 'job_profiles.json')

@@ -1,0 +1,26 @@
+[
+    {
+        "job_id": 1,
+        "profile_updated_at": "2023-11-29T08:56:34.213348",
+        "generated_ad": "",
+        "fixed_term_reason": "",
+        "pay_contractor": "Yes",
+        "job_title": "AI Consultant",
+        "report_to": "Manager",
+        "have_reports": "Yes",
+        "vacancy_number": "1",
+        "job_reponsibilities": "",
+        "ideal_candidate": "",
+        "other_info": "",
+        "full_or_parttime": "Full_Time",
+        "job_type": "Permanent",
+        "salary_range_min": "200",
+        "salary_range_max": "500",
+        "working_hours": "",
+        "working_days": "",
+        "work_arrangement": "On_Site",
+        "job_location": "",
+        "visa_sponsor": "Yes",
+        "additional_note": ""
+    }
+]
