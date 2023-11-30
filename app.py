@@ -116,6 +116,22 @@ def _get_token_from_cache(scope=None):
         return result
     
 #*******************************
+#MY PROFILE
+#*******************************
+@app.route("/my_profile/view")
+def my_profile():
+    company_profile = load_company_profile()
+    if 'standard_service' not in company_profile:
+        company_profile['standard_service']=0
+    if 'premium_service' not in company_profile:
+        company_profile['premium_service']=0
+    standard_service=company_profile['standard_service']
+    premium_service=company_profile['premium_service']
+    user=session["user"]
+    return render_template("my_profile.html", user=user,standard_service=standard_service,premium_service=premium_service)
+
+
+#*******************************
 #COMPANY PROFILE
 #*******************************
 #Information on sub: https://learn.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
@@ -150,6 +166,12 @@ def view_company_profile():
     # Check if 'company_name' is not in the dictionary, if not, it means it is first time registration, hence we auto fill the info from Azure B2C
     if 'company_name' not in company_profile:
         company_profile['company_name'] = user.get('extension_CompanyName', 'unknown')
+        save_company_profile(company_profile)
+    if 'standard_service' not in company_profile:
+        company_profile['standard_service']=0
+        save_company_profile(company_profile)
+    if 'premium_service' not in company_profile:
+        company_profile['premium_service']=0
         save_company_profile(company_profile)
     return render_template("view_company_profile.html", profile=company_profile, user=user )
 
@@ -295,7 +317,9 @@ def delete_job_profile(job_id):
     save_job_profiles(job_profiles)
     return redirect(url_for('index'))
 
-
+#*******************************
+#JOB AD
+#*******************************
 
 def call_azure_open_ai(job_profile_description):
     openai.api_key = os.getenv("AZURE_OPENAI_KEY")
@@ -416,10 +440,48 @@ def edit_job_ad(job_id):
         return render_template("job_ad.html", job_ad=html_content, job_id=job_id, profile_updated_indicator=profile_updated_indicator, user=user)
 
     return render_template("edit_job_ad.html", profile=profile, user=user)
-@app.route("/payment/<int:job_id>")
-def payment(job_id):
+
+@app.route("/payment" , methods=["GET", "POST"])
+def payment():
+    company_profile = load_company_profile()
     user=session["user"]
-    return render_template("payment.html", job_id=job_id, user=user)
+
+    if request.method == "POST":
+         # Retrieve data from the form
+        selected_service = request.form.get('selectedService')
+        selected_amount = request.form.get('numberOfReqs')
+
+        if selected_service=='standardService':
+            company_profile['standard_service']=company_profile['standard_service']+int(selected_amount)
+        elif selected_service=='premiumService':
+            company_profile['premium_service']=company_profile['premium_service']+int(selected_amount)
+        save_company_profile(company_profile)
+        return render_template("my_profile.html", user=user,standard_service=company_profile['standard_service'],premium_service=company_profile['premium_service'])
+    return render_template("payment.html", user=user)
+
+@app.route("/checkout/<int:job_id>", methods=["GET", "POST"])
+def checkout(job_id):
+    user=session["user"]
+    company_profile = load_company_profile()
+    if 'standard_service' not in company_profile:
+        company_profile['standard_service']=0
+    if 'premium_service' not in company_profile:
+        company_profile['premium_service']=0
+    standard_service=company_profile['standard_service']
+    premium_service=company_profile['premium_service']
+
+    if request.method == "POST":
+        selected_service = request.form.get('serviceType')
+
+        if selected_service=='standardService':
+            company_profile['standard_service']=standard_service-1
+        elif selected_service=='premiumService':
+            company_profile['premium_service']=premium_service-1
+        save_company_profile(company_profile)
+        
+        return render_template("checkout_success.html", user=user,job_id=job_id)
+    
+    return render_template("checkout.html", user=user,standard_service=standard_service,premium_service=premium_service, job_id=job_id)
 
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template

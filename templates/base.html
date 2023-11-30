@@ -46,9 +46,7 @@
                             Hello: {{ user.given_name }}
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            {% if config.get("B2C_PROFILE_AUTHORITY") %}
-                            <li><a class="dropdown-item" href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'>Edit User Profile</a></li>
-                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('my_profile')}}">My Profile</a></li>
                             <li><a class="dropdown-item" href="/logout">Logout</a></li>
                         </ul>
                     </li>
