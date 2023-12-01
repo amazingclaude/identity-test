@@ -446,6 +446,11 @@ def edit_job_ad(job_id):
 def payment():
     company_profile = load_company_profile()
     user=session["user"]
+    if 'standard_service' not in company_profile:
+        company_profile['standard_service']=0
+    if 'premium_service' not in company_profile:
+        company_profile['premium_service']=0
+        
 
     if request.method == "POST":
          # Retrieve data from the form
