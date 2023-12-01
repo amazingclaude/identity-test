@@ -21,6 +21,32 @@
         "work_arrangement": "On_Site",
         "job_location": "",
         "visa_sponsor": "Yes",
+        "additional_note": "",
+        "job_status": "Submitted"
+    },
+    {
+        "job_id": 2,
+        "profile_updated_at": "2023-11-30T22:44:00.654259",
+        "generated_ad": "We are currently seeking an experienced Accountant to join our team. As an Accountant, you will be responsible for managing financial records, preparing financial statements, and analyzing financial data. The ideal candidate should have a strong understanding of accounting principles, excellent attention to detail, and the ability to work independently. This role offers a competitive salary range of 100 - 500 based on experience. Working hours and location will be discussed during the interview process. If you are a dedicated and motivated individual with a passion for numbers, we encourage you to apply.",
+        "fixed_term_reason": "",
+        "pay_contractor": "Yes",
+        "job_status": "Submitted",
+        "job_title": "Accountant",
+        "report_to": "",
+        "have_reports": "Yes",
+        "vacancy_number": "1",
+        "job_reponsibilities": "",
+        "ideal_candidate": "",
+        "other_info": "",
+        "full_or_parttime": "Full_Time",
+        "job_type": "Permanent",
+        "salary_range_min": "100",
+        "salary_range_max": "500",
+        "working_hours": "",
+        "working_days": "",
+        "work_arrangement": "On_Site",
+        "job_location": "",
+        "visa_sponsor": "Yes",
         "additional_note": ""
     }
 ]

@@ -27,23 +27,37 @@
 
 </div>
 
-<div>
-    <a href="{{ url_for('job_profile', job_id=profile['job_id']) }}">
-        <button>Edit Job Profile</button>
-    </a>
-</div>
 
-<div>
-    <a href= "{{ url_for('create_job_ad', job_id=profile['job_id']) }}">
-        <button>Hire a Recruiter Now</button>
-    </a>
-</div>
+{% if profile['job_status'] != "Submitted" %}
+    <div>
+        <a href="{{ url_for('job_profile', job_id=profile['job_id']) }}">
+            <button>Edit Job Profile</button>
+        </a>
+    </div>
+
+    <div>
+        <a href= "{{ url_for('create_job_ad', job_id=profile['job_id']) }}">
+            <button>Hire a Recruiter Now</button>
+        </a>
+    </div>
+
+{% endif %}
+
+{% if profile['job_status'] == "Submitted" %}
+    
+    <p><strong>Generated Job Ad:</strong>
+    <div  class="job-ad-container">
+        <!--the sage means that the html tags in the generated_ad will be rendered as html-->
+        <a>{{profile['generated_ad'].replace("\n", "<br>") | safe}}</a>
+    </div>
+{% endif %}
 
 <div>
     <a href="/">
         <button>Back</button>
     </a>
 </div>
+
 <form action="{{ url_for('delete_job_profile', job_id=profile.job_id) }}" method="post">
     <button type="submit" onclick="return confirmDelete();" >Delete</button>
 </form>

@@ -259,7 +259,8 @@ def job_profile(job_id):
                    'profile_updated_at': 0, 
                    'generated_ad': '', 
                    'fixed_term_reason': 'Not Available', 
-                   'pay_contractor': 'Not Available', }
+                   'pay_contractor': 'Not Available', 
+                   'job_status': 'Draft',}
 
         if not new_job_id in existing_ids:
             job_profiles.append(profile)
@@ -288,7 +289,7 @@ def job_profile(job_id):
 
         save_job_profiles(job_profiles)
 
-        return redirect(url_for('view_job_profile', job_id=job_id))
+        return redirect(url_for('view_job_profile', job_id=job_id, job_status=profile['job_status']))
     return render_template("job_profile.html", profile=profile, user=session["user"],new_create_job_indicator=new_create_job_indicator)
 
 
@@ -478,6 +479,11 @@ def checkout(job_id):
         elif selected_service=='premiumService':
             company_profile['premium_service']=premium_service-1
         save_company_profile(company_profile)
+
+        job_profiles = load_job_profiles()
+        profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+        profile['job_status']='Submitted'
+        save_job_profiles(job_profiles)
         
         return render_template("checkout_success.html", user=user,job_id=job_id)
     
