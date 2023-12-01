@@ -10,7 +10,7 @@
       <th>Premium Service</th>
     </tr>
     <tr>
-      <td>Single Req</td>
+      <td>1 Req pack</td>
       <td onclick="selectPayment(this)">$4,399.99</td>
       <td onclick="selectPayment(this)">$4,899.99</td>
     </tr>
@@ -25,28 +25,63 @@
       <td onclick="selectPayment(this)">$13,299.97</td>
     </tr>
   </table>
-  
+
+  <!-- 2 by 2 table -->
+  <table>
+
+    <tr>
+      <td>Premuim Servic</td>
+      <td>Standard service + personality tests, pre-employment drug and alcohol test, police clearance and credit check, and 1st day on boarding plan for free! </td>
+    </tr>
+    <tr>
+      <td>Standard Service</td>
+      <td>We cover all recruiting costs and manage you job requisition until an offer is accepted by a candidate.</td>
+    </tr>
+
+  </table>
   <!-- You might want to add a form here to handle the payment after selection -->
-  <form id="paymentForm">
+  <form id="paymentForm" action="{{ url_for('payment') }}" method="post"> <!-- This form will be submitted to the payment endpoint -->
     <!-- Hidden fields to store the selected payment information -->
     <input type="hidden" id="selectedService" name="selectedService">
-    <input type="hidden" id="selectedAmount" name="selectedAmount">
-    <input type="submit" value="Pay Now">
+    <input type="hidden" id="numberOfReqs" name="numberOfReqs">
+    <button type="submit" > Pay Now </button>
   </form>
 
-   
-    <script>
-        function selectPayment(cell) {
-          // Deselect all cells
-          var cells = document.querySelectorAll('td');
-          cells.forEach(function (td) {
+   <!-- Cancel button -->
+  <div>
+        <a href="{{ url_for('my_profile') }}">
+            <button>Cancel</button>
+        </a>
+  </div>
+  
+  <script>
+    function selectPayment(cell) {
+        // Deselect all cells
+        var cells = document.querySelectorAll('td');
+        cells.forEach(function (td) {
             td.classList.remove('selected');
-          });
-      
-          // Select the clicked cell
-          cell.classList.add('selected');
-          
-          // You can also update some hidden form fields or perform other actions here
-        }
-      </script>
+        });
+
+        // Select the clicked cell
+        cell.classList.add('selected');
+
+        // Extracting numberOfReqs
+        var serviceRow = cell.parentNode;
+        // Get the service type from the first cell of the row
+        // the row name is 1 Req pack, to get the number 1, we use split(' ')[0]
+        var numberOfReqs = serviceRow.cells[0].innerText.split(' ')[0];
+
+        // Determine whether it's Standard or Premium Service
+        // Check the index of the clicked cell within the row
+        var cellIndex = cell.cellIndex;
+
+        // Assign 'Standard Service' if the cell is in the second column (index 1)
+        // Assign 'Premium Service' if the cell is in the third column (index 2)
+        var serviceType = cellIndex === 1 ? 'standardService' : 'premiumService';
+ 
+        // Update hidden form fields
+        document.getElementById('selectedService').value = serviceType;
+        document.getElementById('numberOfReqs').value = numberOfReqs; // Number of requests
+    }
+</script>
  {% endblock %}

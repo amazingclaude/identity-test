@@ -116,16 +116,33 @@ def _get_token_from_cache(scope=None):
         return result
     
 #*******************************
+#MY PROFILE
+#*******************************
+@app.route("/my_profile/view")
+def my_profile():
+    company_profile = load_company_profile()
+    if 'standard_service' not in company_profile:
+        company_profile['standard_service']=0
+    if 'premium_service' not in company_profile:
+        company_profile['premium_service']=0
+    standard_service=company_profile['standard_service']
+    premium_service=company_profile['premium_service']
+    user=session["user"]
+    return render_template("my_profile.html", user=user,standard_service=standard_service,premium_service=premium_service)
+
+
+#*******************************
 #COMPANY PROFILE
 #*******************************
-
+#Information on sub: https://learn.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
+#It is the principal ID os the user, which is the unique identifier for the user account.
 
 def get_company_file_path():
     if has_request_context() and 'user' in session:
-        user_aud = session["user"].get("aud", "default")
+        user_sub = session["user"].get("sub", "default")
     else:
-        user_aud = "default"
-    directory = os.path.join("./database", user_aud)
+        user_sub = "default"
+    directory = os.path.join("./database", user_sub)
     if not os.path.exists(directory):
         os.makedirs(directory)
     return os.path.join(directory, 'company_profile.json')
@@ -149,6 +166,12 @@ def view_company_profile():
     # Check if 'company_name' is not in the dictionary, if not, it means it is first time registration, hence we auto fill the info from Azure B2C
     if 'company_name' not in company_profile:
         company_profile['company_name'] = user.get('extension_CompanyName', 'unknown')
+        save_company_profile(company_profile)
+    if 'standard_service' not in company_profile:
+        company_profile['standard_service']=0
+        save_company_profile(company_profile)
+    if 'premium_service' not in company_profile:
+        company_profile['premium_service']=0
         save_company_profile(company_profile)
     return render_template("view_company_profile.html", profile=company_profile, user=user )
 
@@ -186,11 +209,11 @@ def edit_company_profile():
 
 def get_profile_file_path():
     if has_request_context() and 'user' in session:
-        user_aud = session["user"].get("aud", "default")
+        user_sub = session["user"].get("sub", "default")
     else:
-        user_aud = "default"
+        user_sub = "default"
 
-    directory = os.path.join("./database", user_aud)
+    directory = os.path.join("./database", user_sub)
     if not os.path.exists(directory):
         os.makedirs(directory)
     return os.path.join(directory, 'job_profiles.json')
@@ -236,7 +259,8 @@ def job_profile(job_id):
                    'profile_updated_at': 0, 
                    'generated_ad': '', 
                    'fixed_term_reason': 'Not Available', 
-                   'pay_contractor': 'Not Available', }
+                   'pay_contractor': 'Not Available', 
+                   'job_status': 'Draft',}
 
         if not new_job_id in existing_ids:
             job_profiles.append(profile)
@@ -265,7 +289,7 @@ def job_profile(job_id):
 
         save_job_profiles(job_profiles)
 
-        return redirect(url_for('view_job_profile', job_id=job_id))
+        return redirect(url_for('view_job_profile', job_id=job_id, job_status=profile['job_status']))
     return render_template("job_profile.html", profile=profile, user=session["user"],new_create_job_indicator=new_create_job_indicator)
 
 
@@ -275,6 +299,12 @@ def view_job_profile(job_id):
     job_profiles = load_job_profiles() 
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+
+    # if session['last_update_time_before_editing'] does not exist, set it to profile['profile_updated_at']
+    # Because for user who signed out and signed back in, session is cleared, hence session['last_update_time_before_editing'] will not exist
+    if 'last_update_time_before_editing' not in session:
+        session['last_update_time_before_editing'] = profile['profile_updated_at']
+    
 
     if profile:
         return render_template("view_job_profile.html", profile=profile, user=session["user"])
@@ -288,7 +318,9 @@ def delete_job_profile(job_id):
     save_job_profiles(job_profiles)
     return redirect(url_for('index'))
 
-
+#*******************************
+#JOB AD
+#*******************************
 
 def call_azure_open_ai(job_profile_description):
     openai.api_key = os.getenv("AZURE_OPENAI_KEY")
@@ -409,10 +441,53 @@ def edit_job_ad(job_id):
         return render_template("job_ad.html", job_ad=html_content, job_id=job_id, profile_updated_indicator=profile_updated_indicator, user=user)
 
     return render_template("edit_job_ad.html", profile=profile, user=user)
-@app.route("/payment/<int:job_id>")
-def payment(job_id):
+
+@app.route("/payment" , methods=["GET", "POST"])
+def payment():
+    company_profile = load_company_profile()
     user=session["user"]
-    return render_template("payment.html", job_id=job_id, user=user)
+
+    if request.method == "POST":
+         # Retrieve data from the form
+        selected_service = request.form.get('selectedService')
+        selected_amount = request.form.get('numberOfReqs')
+
+        if selected_service=='standardService':
+            company_profile['standard_service']=company_profile['standard_service']+int(selected_amount)
+        elif selected_service=='premiumService':
+            company_profile['premium_service']=company_profile['premium_service']+int(selected_amount)
+        save_company_profile(company_profile)
+        return render_template("my_profile.html", user=user,standard_service=company_profile['standard_service'],premium_service=company_profile['premium_service'])
+    return render_template("payment.html", user=user)
+
+@app.route("/checkout/<int:job_id>", methods=["GET", "POST"])
+def checkout(job_id):
+    user=session["user"]
+    company_profile = load_company_profile()
+    if 'standard_service' not in company_profile:
+        company_profile['standard_service']=0
+    if 'premium_service' not in company_profile:
+        company_profile['premium_service']=0
+    standard_service=company_profile['standard_service']
+    premium_service=company_profile['premium_service']
+
+    if request.method == "POST":
+        selected_service = request.form.get('serviceType')
+
+        if selected_service=='standardService':
+            company_profile['standard_service']=standard_service-1
+        elif selected_service=='premiumService':
+            company_profile['premium_service']=premium_service-1
+        save_company_profile(company_profile)
+
+        job_profiles = load_job_profiles()
+        profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+        profile['job_status']='Submitted'
+        save_job_profiles(job_profiles)
+        
+        return render_template("checkout_success.html", user=user,job_id=job_id)
+    
+    return render_template("checkout.html", user=user,standard_service=standard_service,premium_service=premium_service, job_id=job_id)
 
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template

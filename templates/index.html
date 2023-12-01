@@ -9,7 +9,7 @@
     <h3>Job Profiles</h3>
 
     {% if job_profiles %}
-        <div style="max-width: 300px;">
+        <div style="max-width: 500px;">
             <table style="border-collapse: collapse; width: 100%;">
                 <thead>
                     <tr style="border-bottom: 2px solid #000;">
@@ -19,21 +19,34 @@
                             <a href="{{ url_for('index', sort='desc') }}">↓</a>
                         </th>
                         <th style="padding: 8px; text-align: left;">Job Title</th>
+                        <th style="padding: 8px; text-align: left;">Job Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for profile in job_profiles %}
                         <tr style="border-bottom: 1px solid #ddd;">
-                            <td style="padding: 8px;">
+                            <td >
                                 <a href="{{ url_for('view_job_profile', job_id=profile.job_id) }}" style="text-decoration: none; color: #333;">
                                     {{ profile.job_id }}
                                 </a>
                             </td>
-                            <td style="padding: 8px;">
+                            <td >
                                 <a href="{{ url_for('view_job_profile', job_id=profile.job_id) }}" style="text-decoration: none; color: #333;">
                                     {{ profile.job_title }}
                                 </a>
                             </td>
+
+                            <td>
+                                <a href="{{ url_for('view_job_profile', job_id=profile.job_id) }}" style="text-decoration: none; color: #333;">
+
+                                    {% if profile.job_status == 'Completed' %}
+                                        <span style="color: green;">{{ profile.job_status }}</span>
+                                    {% elif profile.job_status == 'Submmited' %}
+                                        <span style="color: blue;">{{ profile.job_status }}</span>
+                                    {% else %}
+                                        <span style="color: orange;">{{ profile.job_status }}</span>
+                                    {% endif %}
+                                </a>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -46,7 +59,10 @@
         <button style="margin-top: 20px;">Create Job Profile</button>
     </a>
 
+
+    <!-- Print API information from Azure B2C -->
     <!-- {{user}} -->
+
 {% endif %}
 
 

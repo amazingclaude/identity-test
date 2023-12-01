@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Generated Job Advertisement{% endblock %}
+{% block content %}
+
+<!-- Payment Option -->
+<div class="body-content">
+    <h1>Checkout</h1>
+
+        <!-- Displaying available quotes for standard and premium services -->
+        <div>
+            <h2>Available Services</h2>
+            <p><strong>Standard Service:</strong> {{ standard_service }} quotes available</p>
+            <p><strong>Premium Service:</strong> {{ premium_service }} quotes available</p>
+        </div>
+
+        {% if standard_service <= 0 and premium_service <= 0 %}
+        <p>Sorry, there are no quotes available for purchase.</p>
+        <a href="{{ url_for('payment') }}"><button>Purchase Quote</button></a>
+        {% else %}
+            <!-- Form starts here -->
+            <form action="{{ url_for('checkout', job_id=job_id) }}" method="post">
+                <h4>Select a Service to Purchase</h4>
+                {% if standard_service > 0 %}
+                    <div>
+                        <input type="radio" id="standardService" name="serviceType" value="standardService" required> <!-- required attribute added, this required attribute applies to all the other options -->
+                        <label for="standardService">Standard Service</label>
+                    </div>
+                {% endif %}
+                {% if premium_service > 0 %}
+                    <div>
+                        <input type="radio" id="premiumService" name="serviceType" value="premiumService">
+                        <label for="premiumService">Premium Service</label>
+                    </div>
+                {% endif %}
+                <button type="submit">Purchase Service</button>
+            </form>
+            <!-- Form ends here -->
+        {% endif %}
+        
+
+    <div>
+        <a href="{{ url_for('create_job_ad', job_id=job_id) }}">
+            <button>Cancel</button>
+        </a>
+    </div>
+</div>
+
+
+
+
+
+{% endblock %}

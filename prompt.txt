@@ -1,0 +1,56 @@
+I wrote the following code for my flask app, can you modify it to stroe the information in a database? 
+The schema looks like this 
+"""
+-- Creating the 'users' table
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- Creating the 'companies' table
+CREATE TABLE companies (
+    job_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    job_title VARCHAR(255) NOT NULL,
+    report_to VARCHAR(255) ,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+"""
+
+job_profiles = []
+
+@app.route("/job_profile", methods=['GET', 'POST'])
+def job_profile():
+    # Check if user is authenticated
+    if not session.get("user"):
+        return redirect(url_for("login"))
+    if request.method == 'POST':
+        # Process the form data
+        job_title = request.form.get('job_title')
+        report_to = request.form.get('report_to')
+   
+
+        # Add logic to save this data or process it as needed
+        # Store profile data
+        profile = {
+            "id": len(job_profiles) + 1,
+            "job_title": job_title,
+            "report_to": report_to,
+            # Add other fields...
+        }
+        job_profiles.append(profile)
+
+        # Redirect to next page or acknowledge the submission
+        return redirect(url_for('index'))  # Replace 'next_page' with your next route
+
+    # Render the form page if method is GET
+    return render_template('job_profile.html')
+
+
+
+
+
+    PROMPT IDEAS
+
+         # The ad should include <h2> for the job title, <p> tags for paragraphs, and <ul> with <li> for lists.
