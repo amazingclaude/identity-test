@@ -4,3 +4,7 @@ werkzeug>=2
 flask-session>=0.3.2,<0.5
 requests>=2,<3
 msal>=1.7,<2
+
+openai==0.28.0
+python-dotenv
+json5==0.9.6

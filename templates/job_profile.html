@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Job Creation{% endblock %}
+{% block content %}
+
+<h1>Job Profile</h1>
+
+<form method="post" action="{{ url_for('job_profile', job_id=profile['job_id']) if profile['job_id'] else url_for('job_profile') }}">
+
+    <div>
+        <label for="job_id">Job ID:</label>
+        <span id="job_id">{{ profile['job_id'] }}</span>
+    </div>
+    
+    <div>
+        <label for="job_title">Job Title:</label>
+        <input type="text" id="job_title" name="job_title" value="{{ profile['job_title'] }}" required>
+    </div>
+
+    <div>
+        <label for="report_to">Report To:</label>
+        <input type="text" id="report_to" name="report_to" value="{{ profile['report_to'] }}" >
+    </div>
+
+    <div>
+        <label for="have_reports">Does this role have reports?</label>
+        <select name="have_reports" id="have_reports">
+            <option value="Yes" {% if profile['have_reports'] == "Yes" %} selected {% endif %}>Yes</option>
+            <option value="No" {% if profile['have_reports'] == "No" %} selected {% endif %}>No</option>
+        </select>
+    </div>
+
+    <!-- vacancy number field, allow number range between 1-99 -->
+    <div>
+        <label for="vacancy_number"> Vacancy Number:</label>
+        <input type="number" id="vacancy_number" name="vacancy_number" value="{{ profile['vacancy_number'] }}" min="1" max="99" required>
+    </div>
+
+    <div>
+        <label for="job_reponsibilities"> In your own words, describe the key job responsibilities of this role:</label>
+        <textarea id="job_reponsibilities" name="job_reponsibilities" rows="4" cols="50" >{{ profile['job_reponsibilities'] }}</textarea>
+    </div>
+
+    <div>
+        <label for="ideal_candidate"> In your own words, describle your ideal candidate, including experience and qualification required:</label>
+        <textarea id="ideal_candidate" name="ideal_candidate" rows="4" cols="50" >{{ profile['ideal_candidate'] }}</textarea>
+    </div>
+
+    <div>
+        <label for="other_info"> What else is also important for the role or the candidate?</label>
+        <textarea id="other_info" name="other_info" rows="4" cols="50" >{{ profile['other_info'] }}</textarea>
+    </div>
+
+    <div>
+        <label for="full_or_parttime">Fulltime or Parttime</label>
+        <select name="full_or_parttime" id="full_or_parttime">
+            <option value="Full_Time" {% if profile['full_or_parttime'] == "Full_Time" %} selected {% endif %}>Full Time</option>
+            <option value="Part_Time" {% if profile['full_or_parttime'] == "Part_Time" %} selected {% endif %}>Part Time</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="job_type">Choose the type of employment on offer</label>
+        <select name="job_type" id="job_type" onchange="showAdditionalOptions(this)">
+            <option value="Permanent" {% if profile['job_type'] == "Permanent" %} selected {% endif %}>Permanent</option>
+            <option value="Fixed_Term" {% if profile['job_type'] == "Fixed_Term" %} selected {% endif %}>Fixed Term</option>
+            <option value="Casual" {% if profile['job_type'] == "Casual" %} selected {% endif %}>Casual</option>
+            <option value="Contractor" {% if profile['job_type'] == "Contractor" %} selected {% endif %}>Contractor</option>
+        </select>
+    </div>
+    
+    <!-- Hidden text box for Fixed Term reason -->
+    <div id="fixedTermReason" style="display: none;">
+        <label for="fixed_term_reason">Reason for a fixed term:</label>
+        <input type="text" id="fixed_term_reason" name="fixed_term_reason">
+    </div>
+    
+    <!-- Hidden select module for paying contractor -->
+    <div id="payContractor" style="display: none;">
+        <label for="pay_contractor">Do you want Zispire to pay the contractor for you?</label>
+        <select name="pay_contractor" id="pay_contractor">
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+    </div>
+
+    <!-- Salary Range with two input box, min and max -->
+    <div>
+        <label for="salary_range">Salary Range:</label> 
+        <p>Min</p> 
+        <input type="number" id="salary_range_min" name="salary_range_min" value="{{ profile['salary_range_min'] }}" min="1" max="999999" >
+        <p>Max</p>
+        <input type="number" id="salary_range_max" name="salary_range_max" value="{{ profile['salary_range_max'] }}" min="1" max="999999" >
+    </div>
+
+    <!-- Working Hours -->
+    <div>
+        <label for="working_hours">Working Hours:</label>
+        <input type="number" id="working_hours" name="working_hours" value="{{ profile['working_hours'] }}" min="1" max="999999" >
+    </div>
+
+    <!-- Working Days -->
+    <div>
+        <label for="working_days">Working Days:</label>
+        <input type="number" id="working_days" name="working_days" value="{{ profile['working_days'] }}" min="1" max="999999" >
+    </div>
+
+    <!-- Work Arragnment, On Site, Remote or Hybrid -->
+    <div>
+        <label for="work_arrangement">Work Arrangement:</label>
+        <select name="work_arrangement" id="work_arrangement">
+            <option value="On_Site" {% if profile['work_arrangement'] == "On_Site" %} selected {% endif %}>On Site</option>
+            <option value="Remote" {% if profile['work_arrangement'] == "Remote" %} selected {% endif %}>Remote</option>
+            <option value="Hybrid" {% if profile['work_arrangement'] == "Hybrid" %} selected {% endif %}>Hybrid</option>
+        </select>  
+    </div>
+
+    <!-- Job Location -->
+    <div>
+        <label for="job_location">Job Location:</label>
+        <input type="text" id="job_location" name="job_location" value="{{ profile['job_location'] }}" >
+    </div>
+
+    <!--Visa Sponsor: Do you sponsor a visa for this role? -->
+    <div>
+        <label for="visa_sponsor">Do you sponsor a visa for this role?</label>
+        <select name="visa_sponsor" id="visa_sponsor">
+            <option value="Yes" {% if profile['visa_sponsor'] == "Yes" %} selected {% endif %}>Yes</option>
+            <option value="No" {% if profile['visa_sponsor'] == "No" %} selected {% endif %}>No</option>
+        </select>
+    </div>
+
+    <!-- Any additional note to the recruiter -->
+    <div>
+        <label for="additional_note">Any additional note to the recruiter:</label>
+        <textarea id="additional_note" name="additional_note" rows="4" cols="50" >{{ profile['additional_note'] }}</textarea>
+    </div>
+    
+    <button type="submit"> Save </button>
+</form>
+
+<a href="{{ url_for('view_job_profile', job_id=profile.job_id) if new_create_job_indicator==0 else url_for('index')}}">
+    <button> Cancel</button>
+</a>
+
+<script>
+    function showAdditionalOptions(select) {
+        // Get the selected value
+        var value = select.value;
+
+        // Get the divs for the additional options
+        var fixedTermDiv = document.getElementById('fixedTermReason');
+        var payContractorDiv = document.getElementById('payContractor');
+
+        // Show or hide the Fixed Term Reason text box
+        fixedTermDiv.style.display = (value === 'Fixed_Term') ? 'block' : 'none';
+
+        // Show or hide the Pay Contractor select module
+        payContractorDiv.style.display = (value === 'Contractor') ? 'block' : 'none';
+    }
+
+    // Call the function on page load to ensure correct display based on the current selection
+    window.onload = function() {
+        showAdditionalOptions(document.getElementById('job_type'));
+    };
+</script>
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Generated Job Advertisement{% endblock %}
+{% block content %}
+
+<div class="body-content">
+    <h3>Job Advertisement</h3>
+
+    <!-- Display update message if profile_updated_indicator is 1 -->
+    {% if profile_updated_indicator == 1 %}
+    <p>Your job profile has been updated, click regenerate button to recreate the job ad.</p>
+    <div>
+        <a href="{{ url_for('regenerate_job_ad', job_id=job_id) }}">
+            <button>Regenerate Job Ad</button>
+        </a>
+    </div>
+    {% else %}
+    <p>We have created the job advertisement for you. Please review and edit if necessary.</p>
+    
+    {% endif %}
+
+    
+
+    <div class="job-ad-container">
+        <p>{{ job_ad | safe }}</p>
+    </div>
+
+    <!-- Approve Button -->
+    <div>
+        <a href="{{ url_for('checkout', job_id=job_id) }}">
+            <button>Approve Job Ad</button>
+        </a>    
+    </div>
+
+    <!-- Edit Button -->
+    <div>
+        <a href="{{ url_for('edit_job_ad', job_id=job_id) }}">
+            <button>Edit Job Ad</button>
+        </a>
+    </div>
+    <div>
+        <a href="{{ url_for('view_job_profile', job_id=job_id) }}">
+            <button>Back</button>
+        </a>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Edit Job Advertisement{% endblock %}
+{% block content %}
+
+<div class="body-content">
+    <h3>Edit Job Advertisement</h3>
+    <form action="{{ url_for('edit_job_ad', job_id=profile['job_id']) }}" method="post">
+        <textarea name="generated_ad_content" rows="10" cols="30">{{ profile['generated_ad'] }}</textarea>
+        <br>
+        <button type="submit">Save Changes</button>
+    </form>
+</div>
+
+{% endblock %}

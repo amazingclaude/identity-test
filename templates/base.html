@@ -28,6 +28,11 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{{ url_for('index')}}">Home</a>
                     </li>
+                    {% if user %}
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('view_company_profile')}}">Company Profile</a>
+                    </li>
+                    {% endif %}
             
                     <!-- <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('graphcall')}}">Graph API</a>
@@ -41,9 +46,7 @@
                             Hello: {{ user.given_name }}
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            {% if config.get("B2C_PROFILE_AUTHORITY") %}
-                            <li><a class="dropdown-item" href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'>Edit User Profile</a></li>
-                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('my_profile')}}">My Profile</a></li>
                             <li><a class="dropdown-item" href="/logout">Logout</a></li>
                         </ul>
                     </li>
@@ -57,16 +60,15 @@
         </div>
     </nav>
 
+
+
     <div class="container body-content">
         <br />
         {% block content %}
         {% endblock %}
-        
-       
     </div>
 
 
-   
     <footer class="footer">
         <p>Copyrights © 2023 All Rights Reserved by Zispire Limited</p>
     </footer>

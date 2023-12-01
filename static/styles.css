@@ -59,3 +59,49 @@ footer p {
     margin: 0; /* Keeps the current margin setting */
     padding-left: 20px; /* Adds space to the left inside the footer */
 }
+
+.job-ad-container {
+    background-color: #f8f9fa; /* Light background for the container */
+    padding: 20px; /* Padding around the content */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    margin: 20px 0; /* Margin for top and bottom */
+    line-height: 1.6; /* Improved line height for readability */
+}
+
+.job-ad-container p {
+    margin: 0 0 20px; /* Margin for paragraphs */
+}
+
+/* Payment Page */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+th, td {
+border: 1px solid black;
+padding: 10px;
+text-align: left;
+}
+th {
+background-color: #f2f2f2;
+}
+td {
+cursor: pointer;
+}
+.selected {
+background-color: #c1ffc1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%; /* Full width for mobile */
+        height: auto; /* Auto height for mobile */
+    }
+}

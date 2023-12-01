@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Generated Job Advertisement{% endblock %}
+{% block content %}
+
+<div class="container">
+    <h1 class="success-message">Purchase Successful!</h1>
+    <div class="success-message">
+        <p>Thank you for your purchase. A Recruiter Specialist will review your case and reach out to you as soon as possible.</p>
+        <p>Click the button below to view your job advertisement.</p>
+        <button class="btn btn-primary" onclick="location.href='{{ url_for('view_job_profile', job_id=job_id) }}'">View Job Advertisement</button>
+    </div>
+</div>
+    
+
+{% endblock %}

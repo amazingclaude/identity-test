@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}View job Profile{% endblock %}
+{% block content %}
+
+
+<!-- {{user}} -->
+<h1> User Profile </h1>
+<p><strong>User ID:</strong> {{ user["sub"] }}</p>
+<p><strong>Email:</strong> {{ user["emails"][0] }}</p>
+<p><strong>Given Name:</strong> {{ user["given_name"] }}</p>
+<!-- edit my profile -->
+{% if config.get("B2C_PROFILE_AUTHORITY") %}
+<button href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'>Edit User Profile</button>
+{% endif %}
+
+
+<h1> My Plan </h1>
+<div>
+    <h2>Available Services</h2>
+    <p><strong>Standard Service:</strong> {{ standard_service }} quotes available</p>
+    <p><strong>Premium Service:</strong> {{ premium_service }} quotes available</p>
+</div>
+
+<!-- purchase quote button-->
+<a href="{{ url_for('payment')}}">
+    <button> Purchase Quote </button>
+</a>
+
+
+
+
+{% endblock %}

@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()  # This loads the .env file at the project root
 
 b2c_tenant = "zispireplatform"
 signupsignin_user_flow = "B2C_1_susi"
@@ -8,9 +10,9 @@ editprofile_user_flow = "B2C_1_profile"
 
 authority_template = "https://{tenant}.b2clogin.com/{tenant}.onmicrosoft.com/{user_flow}"
 
-CLIENT_ID = "364fa50d-061f-434e-ba9c-35f5cf8b69df" # Application (client) ID of app registration
+CLIENT_ID =  os.getenv("CLIENT_ID") # Application (client) ID of app registration
 
-CLIENT_SECRET = "Y.w8Q~YcysFhAOCiF4jOJu7s4mr.F5KXHy7wAc4-" # Application secret.
+CLIENT_SECRET = os.getenv("CLIENT_SECRET") # Application secret.
 
 AUTHORITY = authority_template.format(
     tenant=b2c_tenant, user_flow=signupsignin_user_flow)
