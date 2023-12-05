@@ -3,6 +3,17 @@
 {% block content %}
 
 <h1>Job Profile</h1>
+<!--upload the job description module-->
+
+<div>
+    <label for="jobprofileUpload">Upload your existing job profile to autofill:</label>
+    <br>
+    <input type="file" id="jobprofileUpload" name="jobprofileUpload" accept=".pdf, .doc, .docx">
+</div>
+<!--breakline-->
+<hr>
+   
+
 
 <form method="post" action="{{ url_for('job_profile', job_id=profile['job_id']) if profile['job_id'] else url_for('job_profile') }}">
 
