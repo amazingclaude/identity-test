@@ -41,6 +41,13 @@
         </a>
     </div>
 
+     <!-- Clone this job profile -->
+    <div>
+        <form action="{{ url_for('clone_job_profile', job_id=profile.job_id) }}" method="post">
+            <button type="submit" onclick="return confirmClone();" >Clone</button>
+        </form>
+    </div>
+
 {% endif %}
 
 {% if profile['job_status'] == "Submitted" %}

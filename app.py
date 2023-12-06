@@ -266,7 +266,8 @@ def job_profile(job_id):
             job_profiles.append(profile)
 
     # Store the last update time before editing
-    session['last_update_time_before_editing'] = profile['profile_updated_at']  
+    session['last_update_time_before_editing'] = profile['profile_updated_at'] 
+    print(session)
 
     if request.method == 'POST':
         profile_updated = False  # Flag to track changes
@@ -317,6 +318,33 @@ def delete_job_profile(job_id):
     job_profiles = [profile for profile in job_profiles if profile["job_id"] != job_id]
     save_job_profiles(job_profiles)
     return redirect(url_for('index'))
+
+#Clone job profile
+@app.route("/clone_job_profile/<int:job_id>", methods=["POST"])
+def clone_job_profile(job_id):
+    job_profiles = load_job_profiles()
+    existing_ids = set(p["job_id"] for p in job_profiles)
+
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+    new_profile=copy.deepcopy(profile)
+
+    # Creating a new profile
+    new_job_id = 1
+    while new_job_id in existing_ids:
+        new_job_id += 1
+
+    #Assign new job_id to the newly created profile
+    new_profile["job_id"] = new_job_id
+
+    if not new_job_id in existing_ids:
+        job_profiles.append(new_profile)
+
+    # TODO: Complete session
+    # session['last_update_time_before_editing'] = profile['profile_updated_at']  
+
+    save_job_profiles(job_profiles)
+    return redirect(url_for('index'))
+
 
 #*******************************
 #JOB AD
