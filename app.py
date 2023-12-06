@@ -37,6 +37,9 @@ def index():
         session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
         return render_template('index.html', auth_url=session["flow"]["auth_uri"])
     else:
+        # if session['last_update_time_before_editing'] does not exist, set it to empty dictionary
+        if 'last_update_time_before_editing' not in session:
+            session['last_update_time_before_editing'] ={}
         # Load job profiles at the start
         job_profiles = load_job_profiles() 
         sort_order = request.args.get('sort', 'asc')
@@ -272,8 +275,8 @@ def create_job_profile():
         job_profiles.append(profile)
 
     # Store the last update time before editing
-    session['last_update_time_before_editing'] = {new_job_id: profile['profile_updated_at']}
-    print(session)
+    session['last_update_time_before_editing'][new_job_id] =profile['profile_updated_at']
+
 
     if request.method == 'POST':
         profile = update_profile_from_form(profile, request.form)
@@ -295,8 +298,7 @@ def edit_job_profile(job_id):
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
     # Store the last update time before editing
-    session['last_update_time_before_editing'] = {job_id: profile['profile_updated_at']}
-    print(session)
+    session['last_update_time_before_editing'][job_id]=profile['profile_updated_at']
 
     if request.method == 'POST':
         profile = update_profile_from_form(profile, request.form)
@@ -316,7 +318,8 @@ def view_job_profile(job_id):
     # if session['last_update_time_before_editing'] does not exist, set it to profile['profile_updated_at']
     # Because for user who signed out and signed back in, session is cleared, hence session['last_update_time_before_editing'] will not exist
     if 'last_update_time_before_editing' not in session:
-        session['last_update_time_before_editing'] = profile['profile_updated_at']
+        session['last_update_time_before_editing'] = {}
+        session['last_update_time_before_editing'][job_id] = profile['profile_updated_at']
     
 
     if profile:
@@ -351,8 +354,8 @@ def clone_job_profile(job_id):
     if not new_job_id in existing_ids:
         job_profiles.append(new_profile)
 
-    # TODO: Complete session
-    # session['last_update_time_before_editing'] = profile['profile_updated_at']  
+    # add the profile update time for the new job_id to session 
+    session['last_update_time_before_editing'][new_job_id] = profile['profile_updated_at']  
 
     save_job_profiles(job_profiles)
     return redirect(url_for('index'))
@@ -416,8 +419,7 @@ def regenerate_job_ad(job_id):
     generated_ad = generate_job_ad(profile)
     profile['generated_ad'] = generated_ad
     save_job_profiles(job_profiles)
-    session['last_update_time_before_editing'] = profile['profile_updated_at']
-    html_content = generated_ad.replace("\n", "<br>")
+    session['last_update_time_before_editing'][job_id]= profile['profile_updated_at']
     return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
 
 
@@ -436,7 +438,8 @@ def create_job_ad(job_id):
     # If yes, set the profile_updated_indicator to 1, otherwise 0
     # This is to prevent the job ad from being regenerated when the user clicks on the 'Create Job Ad' button
     # The job ad will only be regenerated when the user clicks on the 'Regenerate Job Ad' button
-    if profile['profile_updated_at'] != session['last_update_time_before_editing'] and session['last_update_time_before_editing'] != 0 :
+    
+    if profile['profile_updated_at'] != session['last_update_time_before_editing'][job_id] and session['last_update_time_before_editing'][job_id] != 0 :
         profile_updated_indicator = 1
     else:    
         profile_updated_indicator = 0
@@ -460,7 +463,7 @@ def edit_job_ad(job_id):
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
-    if profile['profile_updated_at'] != session['last_update_time_before_editing'] and session['last_update_time_before_editing'] != 0 :
+    if profile['profile_updated_at'] != session['last_update_time_before_editing'][job_id] and session['last_update_time_before_editing'][job_id] != 0 :
         profile_updated_indicator = 1
     else:    
         profile_updated_indicator = 0
