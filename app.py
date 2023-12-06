@@ -230,68 +230,80 @@ def save_job_profiles(profiles):
     with open(get_profile_file_path(), 'w') as file:
         json.dump(profiles, file, indent=4)
 
-@app.route("/job_profile", defaults={'job_id': None}, methods=['GET', 'POST'])
-@app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
-def job_profile(job_id):
-    job_profiles = load_job_profiles()
 
+def update_profile_from_form(profile, form_data):
+    profile_updated = False  # Flag to track changes
+
+    # Update profile fields
+    for field in ['job_title', 'report_to', 'have_reports', 'vacancy_number', 
+                  'job_reponsibilities', 'ideal_candidate', 'other_info', 
+                  'full_or_parttime', 'job_type', 'fixed_term_reason', 
+                  'pay_contractor', 'salary_range_min', 'salary_range_max', 
+                  'working_hours', 'working_days', 'work_arrangement', 
+                  'job_location', 'visa_sponsor', 'additional_note']:
+        if field not in profile or profile.get(field) != form_data.get(field):
+            profile[field] = form_data.get(field)
+            profile_updated = True
+
+    if profile_updated:
+        profile['profile_updated_at'] = datetime.utcnow().isoformat()
+
+    return profile
+
+
+@app.route("/job_profile", methods=['GET', 'POST'])
+def create_job_profile():
+    job_profiles = load_job_profiles()
     existing_ids = set(p["job_id"] for p in job_profiles)
 
-    #Check if it is new job creation, the logic will make job_id+1 if job_id!=None, hence a supplement condition added (job_id in existing_ids): 
-    if job_id is not None and job_id in existing_ids: 
-        #Create a new_create_job_indicator flag to deliver to job_profile.html, to give Cancel button two choices, either back to view page or back to index page.
-        new_create_job_indicator=0       
-        # Editing an existing profile
-        profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
-        if not profile:
-            return "Profile not found", 404
-    else:
-        #Create a new_create_job_indicator flag to deliver to job_profile.html, to give Cancel button two choices, either back to view page or back to index page.
-        new_create_job_indicator=1
+    # Creating a new profile
+    new_job_id = 1
+    while new_job_id in existing_ids:
+        new_job_id += 1
 
-        # Creating a new profile
-        new_job_id = 1
-        while new_job_id in existing_ids:
-            new_job_id += 1
+    profile = {"job_id": new_job_id, 
+               'profile_updated_at': 0, 
+               'generated_ad': '', 
+               'fixed_term_reason': 'Not Available', 
+               'pay_contractor': 'Not Available', 
+               'job_status': 'Draft'}
 
-        #Assign new job_id to the newly created profile
-        profile = {"job_id": new_job_id, 
-                   'profile_updated_at': 0, 
-                   'generated_ad': '', 
-                   'fixed_term_reason': 'Not Available', 
-                   'pay_contractor': 'Not Available', 
-                   'job_status': 'Draft',}
-
-        if not new_job_id in existing_ids:
-            job_profiles.append(profile)
+    if new_job_id not in existing_ids:
+        job_profiles.append(profile)
 
     # Store the last update time before editing
-    session['last_update_time_before_editing'] = profile['profile_updated_at'] 
+    session['last_update_time_before_editing'] = {new_job_id: profile['profile_updated_at']}
     print(session)
 
     if request.method == 'POST':
-        profile_updated = False  # Flag to track changes
-
-        # Update profile fields
-        for field in ['job_title', 'report_to', 'have_reports', 'vacancy_number', 
-                    'job_reponsibilities', 'ideal_candidate', 'other_info', 
-                    'full_or_parttime', 'job_type', 'fixed_term_reason', 
-                    'pay_contractor', 'salary_range_min', 'salary_range_max', 
-                    'working_hours', 'working_days', 'work_arrangement', 
-                    'job_location', 'visa_sponsor', 'additional_note']:
-            # Check if the field is not in the profile or if the field is in the profile but the value is different from the form
-            if field not in profile or profile.get(field) != request.form.get(field):  
-                profile[field] = request.form.get(field)
-                profile_updated = True  # Set the flag to True if any field is updated
-
-        # Update the profile_updated_at field if any changes were made
-        if profile_updated:
-            profile['profile_updated_at'] = datetime.utcnow().isoformat()
-
+        profile = update_profile_from_form(profile, request.form)
         save_job_profiles(job_profiles)
+        return redirect(url_for('view_job_profile', job_id=new_job_id, job_status=profile['job_status']))
 
+    return render_template("job_profile.html", profile=profile, user=session["user"], new_create_job_indicator=1)
+
+
+
+@app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
+def edit_job_profile(job_id):
+    job_profiles = load_job_profiles()
+    existing_ids = set(p["job_id"] for p in job_profiles)
+
+    if job_id not in existing_ids:
+        return "Profile not found", 404
+
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+
+    # Store the last update time before editing
+    session['last_update_time_before_editing'] = {job_id: profile['profile_updated_at']}
+    print(session)
+
+    if request.method == 'POST':
+        profile = update_profile_from_form(profile, request.form)
+        save_job_profiles(job_profiles)
         return redirect(url_for('view_job_profile', job_id=job_id, job_status=profile['job_status']))
-    return render_template("job_profile.html", profile=profile, user=session["user"],new_create_job_indicator=new_create_job_indicator)
+
+    return render_template("job_profile.html", profile=profile, user=session["user"], new_create_job_indicator=0)
 
 
 

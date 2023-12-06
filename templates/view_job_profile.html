@@ -30,7 +30,7 @@
 
 {% if profile['job_status'] != "Submitted" %}
     <div>
-        <a href="{{ url_for('job_profile', job_id=profile['job_id']) }}">
+        <a href="{{ url_for('edit_job_profile', job_id=profile['job_id']) }}">
             <button>Edit Job Profile</button>
         </a>
     </div>

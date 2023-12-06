@@ -15,7 +15,7 @@
    
 
 
-<form method="post" action="{{ url_for('job_profile', job_id=profile['job_id']) if profile['job_id'] else url_for('job_profile') }}">
+<form method="post" action="{{ url_for('edit_job_profile', job_id=profile['job_id']) if new_create_job_indicator==0 else url_for('create_job_profile') }}">
 
     <div>
         <label for="job_id">Job ID:</label>
