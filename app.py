@@ -238,7 +238,7 @@ def update_profile_from_form(profile, form_data):
     profile_updated = False  # Flag to track changes
 
     # Update profile fields
-    for field in ['job_title', 'report_to', 'have_reports', 'vacancy_number', 
+    for field in ['job_title', 'report_to', 'have_reports', 
                   'job_reponsibilities', 'ideal_candidate', 'other_info', 
                   'full_or_parttime', 'job_type', 'fixed_term_reason', 
                   'pay_contractor', 'salary_range_min', 'salary_range_max', 

@@ -40,12 +40,6 @@
         </select>
     </div>
 
-    <!-- vacancy number field, allow number range between 1-99 -->
-    <div>
-        <label for="vacancy_number"> Vacancy Number:</label>
-        <input type="number" id="vacancy_number" name="vacancy_number" value="{{ profile['vacancy_number'] }}" min="1" max="99" required>
-    </div>
-
     <div>
         <label for="job_reponsibilities"> In your own words, describe the key job responsibilities of this role:</label>
         <textarea id="job_reponsibilities" name="job_reponsibilities" rows="4" cols="50" >{{ profile['job_reponsibilities'] }}</textarea>
