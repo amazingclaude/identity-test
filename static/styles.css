@@ -40,7 +40,8 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-bottom: 10px; /* Add margin between buttons */
+    margin-bottom: 5px; /* Add margin between buttons */
+    margin-right: 10px;
 }
 
 button:hover {
@@ -116,6 +117,42 @@ div input,
 div select,
 div span {
     margin-bottom: 10px;
+}
+
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 12px 16px;
+    z-index: 1;
+}
+
+.dropdown-content button,
+.dropdown-content a {
+    color: black;
+    text-decoration: none;
+    display: block;
+    background-color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px; /* Add margin between buttons */
+}
+
+.dropdown-content button:hover,
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+.header-container {
+    display: flex;
+    align-items: center; /* Aligns items vertically in the center */
+}
+
+.edit-options {
+    margin-right: 10px; /* Adds some space between the title and the button */
 }
 
 /* ==================== */

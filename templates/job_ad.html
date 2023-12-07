@@ -23,7 +23,10 @@
     <div class="job-ad-container">
         <p>{{ job_ad | safe }}</p>
     </div>
+    
 
+</div>
+<div class="header-container">
     <!-- Approve Button -->
     <div>
         <a href="{{ url_for('checkout', job_id=job_id) }}">
@@ -43,6 +46,5 @@
         </a>
     </div>
 </div>
-
 
 {% endblock %}
