@@ -33,8 +33,8 @@ We welcome contributions to our project. Please read [CONTRIBUTING.md](link-to-c
 ## Versioning
 For the versions available, see the [tags on this repository](link-to-tags).
 
-## Authors
-- **Your Name** - *Initial work* - [YourGitHubProfile](link-to-profile)
+<!-- ## Authors
+- **Your Name** - *Initial work* - [YourGitHubProfile](link-to-profile) -->
 
 ## License
 This project is licensed under the [LICENSE.md](link-to-license-file) file for details.
