@@ -73,7 +73,9 @@ footer p {
     margin: 0 0 20px; /* Margin for paragraphs */
 }
 
+/* ==================== */
 /* Payment Page */
+/* ==================== */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -94,7 +96,32 @@ cursor: pointer;
 background-color: #c1ffc1;
 }
 
+/* ==================== */
+/* Job Profile Page */
+/* ==================== */
+.inline-elements label,
+.inline-elements p,
+.inline-elements input {
+    display: inline-block; /* Or use 'inline' if you prefer */
+    margin-right: 5px; /* Adjust spacing as needed */
+}
+
+/* make the text area below the label */
+div textarea {
+    display: block;
+    margin-bottom: 10px; /* Adds some space below each element */
+}
+
+div input,
+div select,
+div span {
+    margin-bottom: 10px;
+}
+
+/* ==================== */
 /* Responsive adjustments */
+/* ==================== */
+
 @media (max-width: 768px) {
     .container-fluid {
         flex-direction: column;

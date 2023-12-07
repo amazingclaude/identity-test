@@ -241,7 +241,7 @@ def update_profile_from_form(profile, form_data):
     for field in ['job_title', 'report_to', 'have_reports', 
                   'job_reponsibilities', 'ideal_candidate', 'other_info', 
                   'full_or_parttime', 'job_type', 'fixed_term_reason', 
-                  'pay_contractor', 'salary_range_min', 'salary_range_max', 
+                  'pay_contractor', 'salary_type','salary_range_min', 'salary_range_max', 
                   'working_hours', 'working_days', 'work_arrangement', 
                   'job_location', 'visa_sponsor', 'additional_note']:
         if field not in profile or profile.get(field) != form_data.get(field):
