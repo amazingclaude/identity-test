@@ -47,6 +47,8 @@
                                         <span style="color: orange;">{{ profile.job_status }}</span>
                                     {% endif %}
                                 </a>
+                            </td>
+                            
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -55,7 +57,7 @@
     {% else %}
         <p>No job profiles found.</p>
     {% endif %}
-    <a href="{{ url_for('job_profile') }}" style="text-decoration: none; ">
+    <a href="{{ url_for('create_job_profile') }}" style="text-decoration: none; ">
         <button style="margin-top: 20px;">Create Job Profile</button>
     </a>
 

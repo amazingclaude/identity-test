@@ -23,26 +23,13 @@
     <div class="job-ad-container">
         <p>{{ job_ad | safe }}</p>
     </div>
-
-    <!-- Approve Button -->
-    <div>
-        <a href="{{ url_for('checkout', job_id=job_id) }}">
-            <button>Approve Job Ad</button>
-        </a>    
-    </div>
-
-    <!-- Edit Button -->
-    <div>
-        <a href="{{ url_for('edit_job_ad', job_id=job_id) }}">
-            <button>Edit Job Ad</button>
-        </a>
-    </div>
-    <div>
-        <a href="{{ url_for('view_job_profile', job_id=job_id) }}">
-            <button>Back</button>
-        </a>
-    </div>
 </div>
+    
+
+
+<a href="{{ url_for('checkout', job_id=job_id) }}"><button>Approve Job Ad</button></a>    
+<a href="{{ url_for('edit_job_ad', job_id=job_id) }}"><button>Edit Job Ad</button></a>
+<a href="{{ url_for('view_job_profile', job_id=job_id) }}"><button>Back</button></a>
 
 
 {% endblock %}

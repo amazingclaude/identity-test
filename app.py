@@ -37,6 +37,7 @@ def index():
         session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
         return render_template('index.html', auth_url=session["flow"]["auth_uri"])
     else:
+
         # Load job profiles at the start
         job_profiles = load_job_profiles() 
         sort_order = request.args.get('sort', 'asc')
@@ -230,67 +231,77 @@ def save_job_profiles(profiles):
     with open(get_profile_file_path(), 'w') as file:
         json.dump(profiles, file, indent=4)
 
-@app.route("/job_profile", defaults={'job_id': None}, methods=['GET', 'POST'])
-@app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
-def job_profile(job_id):
-    job_profiles = load_job_profiles()
 
+def update_profile_from_form(profile, form_data):
+    profile_updated = False  # Flag to track changes
+
+    # Update profile fields
+    for field in ['job_title', 'report_to', 'have_reports', 
+                  'job_reponsibilities', 'ideal_candidate', 'other_info', 
+                  'full_or_parttime', 'job_type', 'fixed_term_reason', 
+                  'pay_contractor', 'salary_type','salary_range_min', 'salary_range_max', 
+                  'working_hours', 'working_days', 'work_arrangement', 
+                  'job_location', 'visa_sponsor', 'additional_note']:
+        if field not in profile or profile.get(field) != form_data.get(field):
+            profile[field] = form_data.get(field)
+            profile_updated = True
+
+    if profile_updated:
+        profile['profile_updated_at'] = datetime.utcnow().isoformat()
+        profile['alow_ad_generation'] = True
+        
+    return profile
+
+
+@app.route("/job_profile", methods=['GET', 'POST'])
+def create_job_profile():
+    job_profiles = load_job_profiles()
     existing_ids = set(p["job_id"] for p in job_profiles)
 
-    #Check if it is new job creation, the logic will make job_id+1 if job_id!=None, hence a supplement condition added (job_id in existing_ids): 
-    if job_id is not None and job_id in existing_ids: 
-        #Create a new_create_job_indicator flag to deliver to job_profile.html, to give Cancel button two choices, either back to view page or back to index page.
-        new_create_job_indicator=0       
-        # Editing an existing profile
-        profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
-        if not profile:
-            return "Profile not found", 404
-    else:
-        #Create a new_create_job_indicator flag to deliver to job_profile.html, to give Cancel button two choices, either back to view page or back to index page.
-        new_create_job_indicator=1
+    # Creating a new profile
+    new_job_id = 1
+    while new_job_id in existing_ids:
+        new_job_id += 1
 
-        # Creating a new profile
-        new_job_id = 1
-        while new_job_id in existing_ids:
-            new_job_id += 1
+    profile = {"job_id": new_job_id, 
+               'profile_updated_at': 0, 
+               'alow_ad_generation': True,
+               'generated_ad': '', 
+               'fixed_term_reason': 'Not Available', 
+               'pay_contractor': 'Not Available', 
+               'job_status': 'Draft'}
 
-        #Assign new job_id to the newly created profile
-        profile = {"job_id": new_job_id, 
-                   'profile_updated_at': 0, 
-                   'generated_ad': '', 
-                   'fixed_term_reason': 'Not Available', 
-                   'pay_contractor': 'Not Available', 
-                   'job_status': 'Draft',}
+    if new_job_id not in existing_ids:
+        job_profiles.append(profile)
 
-        if not new_job_id in existing_ids:
-            job_profiles.append(profile)
-
-    # Store the last update time before editing
-    session['last_update_time_before_editing'] = profile['profile_updated_at']  
+ 
 
     if request.method == 'POST':
-        profile_updated = False  # Flag to track changes
-
-        # Update profile fields
-        for field in ['job_title', 'report_to', 'have_reports', 'vacancy_number', 
-                    'job_reponsibilities', 'ideal_candidate', 'other_info', 
-                    'full_or_parttime', 'job_type', 'fixed_term_reason', 
-                    'pay_contractor', 'salary_range_min', 'salary_range_max', 
-                    'working_hours', 'working_days', 'work_arrangement', 
-                    'job_location', 'visa_sponsor', 'additional_note']:
-            # Check if the field is not in the profile or if the field is in the profile but the value is different from the form
-            if field not in profile or profile.get(field) != request.form.get(field):  
-                profile[field] = request.form.get(field)
-                profile_updated = True  # Set the flag to True if any field is updated
-
-        # Update the profile_updated_at field if any changes were made
-        if profile_updated:
-            profile['profile_updated_at'] = datetime.utcnow().isoformat()
-
+        profile = update_profile_from_form(profile, request.form)
         save_job_profiles(job_profiles)
+        return redirect(url_for('view_job_profile', job_id=new_job_id, job_status=profile['job_status']))
 
+    return render_template("job_profile.html", profile=profile, user=session["user"], new_create_job_indicator=1)
+
+
+
+@app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
+def edit_job_profile(job_id):
+    job_profiles = load_job_profiles()
+    existing_ids = set(p["job_id"] for p in job_profiles)
+
+    if job_id not in existing_ids:
+        return "Profile not found", 404
+
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+
+
+    if request.method == 'POST':
+        profile = update_profile_from_form(profile, request.form)
+        save_job_profiles(job_profiles)
         return redirect(url_for('view_job_profile', job_id=job_id, job_status=profile['job_status']))
-    return render_template("job_profile.html", profile=profile, user=session["user"],new_create_job_indicator=new_create_job_indicator)
+
+    return render_template("job_profile.html", profile=profile, user=session["user"], new_create_job_indicator=0)
 
 
 
@@ -300,10 +311,7 @@ def view_job_profile(job_id):
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
-    # if session['last_update_time_before_editing'] does not exist, set it to profile['profile_updated_at']
-    # Because for user who signed out and signed back in, session is cleared, hence session['last_update_time_before_editing'] will not exist
-    if 'last_update_time_before_editing' not in session:
-        session['last_update_time_before_editing'] = profile['profile_updated_at']
+
     
 
     if profile:
@@ -317,6 +325,31 @@ def delete_job_profile(job_id):
     job_profiles = [profile for profile in job_profiles if profile["job_id"] != job_id]
     save_job_profiles(job_profiles)
     return redirect(url_for('index'))
+
+#Clone job profile
+@app.route("/clone_job_profile/<int:job_id>", methods=["POST"])
+def clone_job_profile(job_id):
+    job_profiles = load_job_profiles()
+    existing_ids = set(p["job_id"] for p in job_profiles)
+
+    profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
+    new_profile=copy.deepcopy(profile)
+
+    # Creating a new profile
+    new_job_id = 1
+    while new_job_id in existing_ids:
+        new_job_id += 1
+
+    #Assign new job_id to the newly created profile
+    new_profile["job_id"] = new_job_id
+
+    if not new_job_id in existing_ids:
+        job_profiles.append(new_profile)
+
+
+    save_job_profiles(job_profiles)
+    return redirect(url_for('index'))
+
 
 #*******************************
 #JOB AD
@@ -351,60 +384,77 @@ def call_azure_open_ai(job_profile_description):
     generated_ad = response.get("choices")[0]['message']['content']
     return generated_ad
 
-def generate_job_ad(profile):
+def generate_job_ad(profile,company_profile):
     job_profile_description = f"""
-    Based on the job profile provided, generate job advertisement in plain text. Only show the generated job advertisement in your answer.
+    Based on the job profile provided after ===, generate job advertisement in plain text. Only show the generated job advertisement in your answer.
+    Part 1, Top 3 selling point of the company (if remote or hybrid is mentioned, display a selling point)
+    Part 2, About the company.
+    Part 3, About the role. Describle what the role does or what the purpose of the role is. Descript the key responsibilities as bulltin points, up to 10. 
+    Part 4, Describle the ideal candidate including the qualification and experience required.
+    All information generated should contain minimum amendment to the provided job profile. 
+    ===
     Job Title: {profile.get('job_title', '')}
     Responsibilities: {profile.get('job_reponsibilities', '')}
     Ideal Candidate: {profile.get('ideal_candidate', '')}
+    Other Information: {profile.get('other_info', '')}
     Salary Range: {profile.get('salary_range_min', '')} - {profile.get('salary_range_max', '')}
     Working Hours: {profile.get('working_hours', '')}
     Location: {profile.get('job_location', '')}
     Additional Notes: {profile.get('additional_notes', '')}
+    Company's business: { company_profile.get('CompanyQ1', '') }
+    Company's customers: { company_profile.get('CompanyQ2', '') }
+    Employee benefits to offer: { company_profile.get('CompanyQ3', '') }
+    Top 3 reasons people should work for the company? { company_profile.get('CompanyQ4', '') }
     """
     return call_azure_open_ai(job_profile_description)
 
 
 @app.route("/create_job_ad/regenerate/<int:job_id>")
 def regenerate_job_ad(job_id):
+    company_profile=load_company_profile()
     job_profiles = load_job_profiles()
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
     if not profile:
         return "Job profile not found", 404
-
-    generated_ad = generate_job_ad(profile)
-    profile['generated_ad'] = generated_ad
-    save_job_profiles(job_profiles)
-    session['last_update_time_before_editing'] = profile['profile_updated_at']
-    html_content = generated_ad.replace("\n", "<br>")
-    return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
+    if profile['alow_ad_generation'] == False:
+        html_content = profile['generated_ad'].replace("\n", "<br>")
+        return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
+    else:
+        generated_ad = generate_job_ad(profile,company_profile)
+        profile['generated_ad'] = generated_ad
+      
+        profile['alow_ad_generation'] = False
+        save_job_profiles(job_profiles)
+        html_content = generated_ad.replace("\n", "<br>")
+        return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
 
 
 @app.route("/create_job_ad/<int:job_id>")
 def create_job_ad(job_id):
-    
+    company_profile=load_company_profile()
     job_profiles = load_job_profiles()
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
-
-
 
     if not profile:
         return "Job profile not found", 404
     
+
     # Check if the profile has been updated since the last time the job ad was generated
     # If yes, set the profile_updated_indicator to 1, otherwise 0
     # This is to prevent the job ad from being regenerated when the user clicks on the 'Create Job Ad' button
     # The job ad will only be regenerated when the user clicks on the 'Regenerate Job Ad' button
-    if profile['profile_updated_at'] != session['last_update_time_before_editing'] and session['last_update_time_before_editing'] != 0 :
+    
+    if profile['alow_ad_generation'] == True:
         profile_updated_indicator = 1
     else:    
         profile_updated_indicator = 0
 
     # Check if 'generated_ad' is empty, if yes, generate the job ad
     if profile['generated_ad'] == '':
-        generated_ad = generate_job_ad(profile)
+        generated_ad = generate_job_ad(profile,company_profile)
         profile['generated_ad'] = generated_ad
+        profile['alow_ad_generation'] = False
         save_job_profiles(job_profiles)
         html_content = generated_ad.replace("\n", "<br>")
     
@@ -420,7 +470,7 @@ def edit_job_ad(job_id):
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
-    if profile['profile_updated_at'] != session['last_update_time_before_editing'] and session['last_update_time_before_editing'] != 0 :
+    if profile['alow_ad_generation'] == True:
         profile_updated_indicator = 1
     else:    
         profile_updated_indicator = 0

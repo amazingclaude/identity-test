@@ -3,8 +3,19 @@
 {% block content %}
 
 <h1>Job Profile</h1>
+<!--upload the job description module-->
 
-<form method="post" action="{{ url_for('job_profile', job_id=profile['job_id']) if profile['job_id'] else url_for('job_profile') }}">
+<div>
+    <label for="jobprofileUpload">Upload your existing job profile to autofill:</label>
+    <br>
+    <input type="file" id="jobprofileUpload" name="jobprofileUpload" accept=".pdf, .doc, .docx">
+</div>
+<!--breakline-->
+<hr>
+   
+
+
+<form method="post" action="{{ url_for('edit_job_profile', job_id=profile['job_id']) if new_create_job_indicator==0 else url_for('create_job_profile') }}">
 
     <div>
         <label for="job_id">Job ID:</label>
@@ -17,22 +28,16 @@
     </div>
 
     <div>
-        <label for="report_to">Report To:</label>
-        <input type="text" id="report_to" name="report_to" value="{{ profile['report_to'] }}" >
+        <label for="report_to">Report to:</label>
+        <input type="text" id="report_to" name="report_to" placeholder="Manager's title of the role" value="{{ profile['report_to'] }}" >
     </div>
 
     <div>
-        <label for="have_reports">Does this role have reports?</label>
+        <label for="have_reports">Does this role manage a team?</label>
         <select name="have_reports" id="have_reports">
             <option value="Yes" {% if profile['have_reports'] == "Yes" %} selected {% endif %}>Yes</option>
             <option value="No" {% if profile['have_reports'] == "No" %} selected {% endif %}>No</option>
         </select>
-    </div>
-
-    <!-- vacancy number field, allow number range between 1-99 -->
-    <div>
-        <label for="vacancy_number"> Vacancy Number:</label>
-        <input type="number" id="vacancy_number" name="vacancy_number" value="{{ profile['vacancy_number'] }}" min="1" max="99" required>
     </div>
 
     <div>
@@ -82,26 +87,37 @@
             <option value="No">No</option>
         </select>
     </div>
-
-    <!-- Salary Range with two input box, min and max -->
+    <!-- Salary Type: Salary or Wage -->
     <div>
-        <label for="salary_range">Salary Range:</label> 
-        <p>Min</p> 
-        <input type="number" id="salary_range_min" name="salary_range_min" value="{{ profile['salary_range_min'] }}" min="1" max="999999" >
-        <p>Max</p>
-        <input type="number" id="salary_range_max" name="salary_range_max" value="{{ profile['salary_range_max'] }}" min="1" max="999999" >
+        <label for="salary_type">Salary Type:</label>
+        <select name="salary_type" id="salary_type">
+            <option value="Salary" {% if profile['salary_type'] == "Salary" %} selected {% endif %}>Salary</option>
+            <option value="Wage" {% if profile['salary_type'] == "Wage" %} selected {% endif %}>Wage</option>
+        </select>
     </div>
 
+    <!-- Salary Range with two input box, min and max -->
+    <div class="inline-elements">
+        <label for="salary_range">Salary/Wage Range:</label> 
+        <p>from</p> 
+        <input type="number" id="salary_range_min" name="salary_range_min" placeholder="min" value="{{ profile['salary_range_min'] }}" min="1" max="999999" >
+        <p>to</p>
+        <input type="number" id="salary_range_max" name="salary_range_max" placeholder="max" value="{{ profile['salary_range_max'] }}" min="1" max="999999" >
+    </div>
+    
+
     <!-- Working Hours -->
-    <div>
+    <div class="inline-elements">
         <label for="working_hours">Working Hours:</label>
         <input type="number" id="working_hours" name="working_hours" value="{{ profile['working_hours'] }}" min="1" max="999999" >
+        <p> hours per day</p>
     </div>
 
     <!-- Working Days -->
-    <div>
+    <div class="inline-elements">
         <label for="working_days">Working Days:</label>
         <input type="number" id="working_days" name="working_days" value="{{ profile['working_days'] }}" min="1" max="999999" >
+        <p> days per week</p>
     </div>
 
     <!-- Work Arragnment, On Site, Remote or Hybrid -->
