@@ -10,7 +10,7 @@
 <p><strong>Given Name:</strong> {{ user["given_name"] }}</p>
 <!-- edit my profile -->
 {% if config.get("B2C_PROFILE_AUTHORITY") %}
-<button href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'>Edit User Profile</button>
+<a href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'><button>Edit User Profile</button></a>
 {% endif %}
 
 

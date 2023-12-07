@@ -76,27 +76,28 @@
     },
     {
         "job_id": 5,
-        "profile_updated_at": "2023-12-06T20:36:42.365239",
+        "profile_updated_at": "2023-12-07T19:43:56.987882",
         "generated_ad": "Job Title: AI Consultant\n\nResponsibilities:\n- Develop and implement AI solutions to meet business needs\n- Research and analyze data to identify AI opportunities\n- Collaborate with cross-functional teams to integrate AI into existing systems\n- Provide technical expertise and guidance on AI-related projects\n- Stay updated on the latest AI technologies and trends\n\nIdeal Candidate:\n- Bachelor's or Master's degree in Computer Science, Data Science, or related field\n- Proven experience in AI development and implementation\n- Strong programming skills in languages such as Python, R, or Java\n- Knowledge of machine learning algorithms and deep learning frameworks\n- Excellent problem-solving and analytical abilities\n\nSalary Range: Competitive\n\nWorking Hours: Full-time\n\nLocation: [Location]\n\nAdditional Notes:\n- This is an exciting opportunity to join a dynamic team and make a significant impact in the field of AI. If you are passionate about leveraging AI to drive innovation and solve complex challenges, we want to hear from you!",
         "fixed_term_reason": "",
         "pay_contractor": "Yes",
         "job_status": "Draft",
         "job_title": "AI Consultant",
         "report_to": "Manager",
-        "have_reports": "Yes",
+        "have_reports": "No",
         "vacancy_number": "1",
         "job_reponsibilities": "",
         "ideal_candidate": "",
         "other_info": "",
         "full_or_parttime": "Full_Time",
         "job_type": "Permanent",
-        "salary_range_min": "",
+        "salary_range_min": "100",
         "salary_range_max": "",
         "working_hours": "",
         "working_days": "",
         "work_arrangement": "On_Site",
         "job_location": "",
         "visa_sponsor": "Yes",
-        "additional_note": ""
+        "additional_note": "",
+        "salary_type": "Salary"
     }
 ]
