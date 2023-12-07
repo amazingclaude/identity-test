@@ -11,6 +11,7 @@
 <!-- edit my profile -->
 {% if config.get("B2C_PROFILE_AUTHORITY") %}
 <a href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'><button>Edit User Profile</button></a>
+<a href='{{_build_auth_code_flow(authority=config["B2C_PASSWORD_AUTHORITY"])["auth_uri"]}}'><button>Reset Password</button></a>
 {% endif %}
 
 

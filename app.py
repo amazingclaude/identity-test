@@ -434,6 +434,12 @@ def create_job_ad(job_id):
     if not profile:
         return "Job profile not found", 404
     
+    #When log out and sign in, session is cleared, hence session['last_update_time_before_editing'] will not exist
+    if 'last_update_time_before_editing' not in session:
+        session['last_update_time_before_editing'] = {}
+    elif job_id not in session['last_update_time_before_editing']:
+        session['last_update_time_before_editing'][job_id] = profile['profile_updated_at']
+
     # Check if the profile has been updated since the last time the job ad was generated
     # If yes, set the profile_updated_indicator to 1, otherwise 0
     # This is to prevent the job ad from being regenerated when the user clicks on the 'Create Job Ad' button
