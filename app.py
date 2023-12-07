@@ -384,22 +384,34 @@ def call_azure_open_ai(job_profile_description):
     generated_ad = response.get("choices")[0]['message']['content']
     return generated_ad
 
-def generate_job_ad(profile):
+def generate_job_ad(profile,company_profile):
     job_profile_description = f"""
-    Based on the job profile provided, generate job advertisement in plain text. Only show the generated job advertisement in your answer.
+    Based on the job profile provided after ===, generate job advertisement in plain text. Only show the generated job advertisement in your answer.
+    Part 1, Top 3 selling point of the company (if remote or hybrid is mentioned, display a selling point)
+    Part 2, About the company.
+    Part 3, About the role. Describle what the role does or what the purpose of the role is. Descript the key responsibilities as bulltin points, up to 10. 
+    Part 4, Describle the ideal candidate including the qualification and experience required.
+    All information generated should contain minimum amendment to the provided job profile. 
+    ===
     Job Title: {profile.get('job_title', '')}
     Responsibilities: {profile.get('job_reponsibilities', '')}
     Ideal Candidate: {profile.get('ideal_candidate', '')}
+    Other Information: {profile.get('other_info', '')}
     Salary Range: {profile.get('salary_range_min', '')} - {profile.get('salary_range_max', '')}
     Working Hours: {profile.get('working_hours', '')}
     Location: {profile.get('job_location', '')}
     Additional Notes: {profile.get('additional_notes', '')}
+    Company's business: { company_profile.get('CompanyQ1', '') }
+    Company's customers: { company_profile.get('CompanyQ2', '') }
+    Employee benefits to offer: { company_profile.get('CompanyQ3', '') }
+    Top 3 reasons people should work for the company? { company_profile.get('CompanyQ4', '') }
     """
     return call_azure_open_ai(job_profile_description)
 
 
 @app.route("/create_job_ad/regenerate/<int:job_id>")
 def regenerate_job_ad(job_id):
+    company_profile=load_company_profile()
     job_profiles = load_job_profiles()
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
@@ -409,7 +421,7 @@ def regenerate_job_ad(job_id):
         html_content = profile['generated_ad'].replace("\n", "<br>")
         return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
     else:
-        generated_ad = generate_job_ad(profile)
+        generated_ad = generate_job_ad(profile,company_profile)
         profile['generated_ad'] = generated_ad
       
         profile['alow_ad_generation'] = False
@@ -420,7 +432,7 @@ def regenerate_job_ad(job_id):
 
 @app.route("/create_job_ad/<int:job_id>")
 def create_job_ad(job_id):
-    
+    company_profile=load_company_profile()
     job_profiles = load_job_profiles()
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
@@ -440,7 +452,7 @@ def create_job_ad(job_id):
 
     # Check if 'generated_ad' is empty, if yes, generate the job ad
     if profile['generated_ad'] == '':
-        generated_ad = generate_job_ad(profile)
+        generated_ad = generate_job_ad(profile,company_profile)
         profile['generated_ad'] = generated_ad
         profile['alow_ad_generation'] = False
         save_job_profiles(job_profiles)

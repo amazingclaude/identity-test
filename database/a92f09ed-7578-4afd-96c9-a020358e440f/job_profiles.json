@@ -27,7 +27,7 @@
     {
         "job_id": 1,
         "profile_updated_at": "2023-12-07T21:33:02.541528",
-        "generated_ad": "Job Title: AI Consultant\n\nResponsibilities: \n- Develop and implement AI solutions to improve business operations\n- Analyze and interpret data to provide insights and recommendations\n- Collaborate with cross-functional teams to integrate AI technologies into existing systems\n- Stay updated on the latest AI developments and best practices\n\nIdeal Candidate: \n- Bachelor's or Master's degree in Computer Science, Data Science, or related field\n- Proven experience in developing and implementing AI solutions\n- Strong programming skills in languages such as Python, R, or Java\n- Excellent analytical and problem-solving abilities\n- Effective communication and teamwork skills\n\nSalary Range: Competitive\n\nWorking Hours: Full-time\n\nLocation: To be discussed\n\nAdditional Notes: \n- The ideal candidate will have a passion for AI and a desire to drive innovation in the field.",
+        "generated_ad": "Job Advertisement:\n---------------------------------------------------------\nJoin Our Team as an AI Consultant\n\nAbout the Company:\nWe are a leading technology firm that specializes in developing cutting-edge AI solutions for a diverse range of industries. Our innovative approach and commitment to excellence have earned us a reputation as a trusted partner for organizations seeking to harness the power of AI to drive business success.\n\nAbout the Role:\nAs an AI Consultant, you will play a crucial role in leveraging AI technologies to address complex business challenges and drive impactful outcomes for our clients. Your responsibilities will include:\n- Collaborating with cross-functional teams to analyze client requirements and design AI solutions\n- Developing and implementing AI models and algorithms to deliver actionable insights\n- Conducting in-depth data analysis and providing strategic recommendations based on AI findings\n- Contributing to the continuous improvement of AI methodologies and best practices\n- Providing expert guidance and support to clients on AI-related initiatives\n- Keeping abreast of the latest advancements in AI and integrating them into project strategies\n\nIdeal Candidate:\nWe are seeking",
         "fixed_term_reason": "",
         "pay_contractor": "Yes",
         "job_status": "Draft",
@@ -48,6 +48,6 @@
         "job_location": "",
         "visa_sponsor": "Yes",
         "additional_note": "",
-        "alow_ad_generation": true
+        "alow_ad_generation": false
     }
 ]
