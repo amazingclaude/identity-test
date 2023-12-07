@@ -37,9 +37,7 @@ def index():
         session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
         return render_template('index.html', auth_url=session["flow"]["auth_uri"])
     else:
-        # if session['last_update_time_before_editing'] does not exist, set it to empty dictionary
-        if 'last_update_time_before_editing' not in session:
-            session['last_update_time_before_editing'] ={}
+
         # Load job profiles at the start
         job_profiles = load_job_profiles() 
         sort_order = request.args.get('sort', 'asc')
@@ -250,7 +248,8 @@ def update_profile_from_form(profile, form_data):
 
     if profile_updated:
         profile['profile_updated_at'] = datetime.utcnow().isoformat()
-
+        profile['alow_ad_generation'] = True
+        
     return profile
 
 
@@ -266,6 +265,7 @@ def create_job_profile():
 
     profile = {"job_id": new_job_id, 
                'profile_updated_at': 0, 
+               'alow_ad_generation': True,
                'generated_ad': '', 
                'fixed_term_reason': 'Not Available', 
                'pay_contractor': 'Not Available', 
@@ -274,9 +274,7 @@ def create_job_profile():
     if new_job_id not in existing_ids:
         job_profiles.append(profile)
 
-    # Store the last update time before editing
-    session['last_update_time_before_editing'][new_job_id] =profile['profile_updated_at']
-
+ 
 
     if request.method == 'POST':
         profile = update_profile_from_form(profile, request.form)
@@ -297,8 +295,6 @@ def edit_job_profile(job_id):
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
-    # Store the last update time before editing
-    session['last_update_time_before_editing'][job_id]=profile['profile_updated_at']
 
     if request.method == 'POST':
         profile = update_profile_from_form(profile, request.form)
@@ -315,11 +311,7 @@ def view_job_profile(job_id):
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
-    # if session['last_update_time_before_editing'] does not exist, set it to profile['profile_updated_at']
-    # Because for user who signed out and signed back in, session is cleared, hence session['last_update_time_before_editing'] will not exist
-    if 'last_update_time_before_editing' not in session:
-        session['last_update_time_before_editing'] = {}
-        session['last_update_time_before_editing'][job_id] = profile['profile_updated_at']
+
     
 
     if profile:
@@ -354,8 +346,6 @@ def clone_job_profile(job_id):
     if not new_job_id in existing_ids:
         job_profiles.append(new_profile)
 
-    # add the profile update time for the new job_id to session 
-    session['last_update_time_before_editing'][new_job_id] = profile['profile_updated_at']  
 
     save_job_profiles(job_profiles)
     return redirect(url_for('index'))
@@ -415,12 +405,17 @@ def regenerate_job_ad(job_id):
 
     if not profile:
         return "Job profile not found", 404
-
-    generated_ad = generate_job_ad(profile)
-    profile['generated_ad'] = generated_ad
-    save_job_profiles(job_profiles)
-    session['last_update_time_before_editing'][job_id]= profile['profile_updated_at']
-    return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
+    if profile['alow_ad_generation'] == False:
+        html_content = profile['generated_ad'].replace("\n", "<br>")
+        return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
+    else:
+        generated_ad = generate_job_ad(profile)
+        profile['generated_ad'] = generated_ad
+      
+        profile['alow_ad_generation'] = False
+        save_job_profiles(job_profiles)
+        html_content = generated_ad.replace("\n", "<br>")
+        return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
 
 
 @app.route("/create_job_ad/<int:job_id>")
@@ -429,23 +424,16 @@ def create_job_ad(job_id):
     job_profiles = load_job_profiles()
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
-
-
     if not profile:
         return "Job profile not found", 404
     
-    #When log out and sign in, session is cleared, hence session['last_update_time_before_editing'] will not exist
-    if 'last_update_time_before_editing' not in session:
-        session['last_update_time_before_editing'] = {}
-    elif job_id not in session['last_update_time_before_editing']:
-        session['last_update_time_before_editing'][job_id] = profile['profile_updated_at']
 
     # Check if the profile has been updated since the last time the job ad was generated
     # If yes, set the profile_updated_indicator to 1, otherwise 0
     # This is to prevent the job ad from being regenerated when the user clicks on the 'Create Job Ad' button
     # The job ad will only be regenerated when the user clicks on the 'Regenerate Job Ad' button
     
-    if profile['profile_updated_at'] != session['last_update_time_before_editing'][job_id] and session['last_update_time_before_editing'][job_id] != 0 :
+    if profile['alow_ad_generation'] == True:
         profile_updated_indicator = 1
     else:    
         profile_updated_indicator = 0
@@ -454,6 +442,7 @@ def create_job_ad(job_id):
     if profile['generated_ad'] == '':
         generated_ad = generate_job_ad(profile)
         profile['generated_ad'] = generated_ad
+        profile['alow_ad_generation'] = False
         save_job_profiles(job_profiles)
         html_content = generated_ad.replace("\n", "<br>")
     
@@ -469,7 +458,7 @@ def edit_job_ad(job_id):
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
-    if profile['profile_updated_at'] != session['last_update_time_before_editing'][job_id] and session['last_update_time_before_editing'][job_id] != 0 :
+    if profile['alow_ad_generation'] == True:
         profile_updated_indicator = 1
     else:    
         profile_updated_indicator = 0
