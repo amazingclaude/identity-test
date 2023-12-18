@@ -386,12 +386,12 @@ def call_azure_open_ai(job_profile_description):
 
 def generate_job_ad(profile,company_profile):
     job_profile_description = f"""
-    Based on the job profile provided after ===, generate job advertisement in plain text. Only show the generated job advertisement in your answer.
-    Part 1, Top 3 selling point of the company (if remote or hybrid is mentioned, display a selling point)
-    Part 2, About the company.
+    Based on the job profile and company profile provided after ===, generate job advertisement in plain text. Only show the generated job advertisement in your answer.
+    Part 1, Top Selling Points. Top 3 selling point or benefits of the company (if remote or hybrid is mentioned, display it as a selling point)
+    Part 2, About the company. Do not show the company name. 
     Part 3, About the role. Describle what the role does or what the purpose of the role is. Descript the key responsibilities as bulltin points, up to 10. 
-    Part 4, Describle the ideal candidate including the qualification and experience required.
-    All information generated should contain minimum amendment to the provided job profile. 
+    Part 4, Our Ideal Candidates. Describle the ideal candidate including the experience, skills, qualifications, and other requirements supplied
+    All information generated should contain minimum amendment to the provided job profile. In clude a closure phrase to encourage candidates to apply now.  
     ===
     Job Title: {profile.get('job_title', '')}
     Responsibilities: {profile.get('job_reponsibilities', '')}
