@@ -9,12 +9,22 @@ import os
 import openai
 import copy
 from datetime import datetime
+
+from azure.cosmos import CosmosClient, exceptions
+
 from dotenv import load_dotenv
 load_dotenv()  # This loads the .env file at the project root
+
+
 
 app = Flask(__name__)
 app.config.from_object(app_config)
 Session(app)
+
+# Initialize the Cosmos DB client
+client = CosmosClient(app_config.ACCOUNT_HOST, credential=app_config.ACCOUNT_KEY)
+database = client.get_database_client(app_config.COSMOS_DATABASE)
+container = database.get_container_client(app_config.COSMOS_CONTAINER)
 
 # This section is needed for url_for("foo", _external=True) to automatically
 # generate http scheme when this sample is running on localhost,
@@ -37,9 +47,11 @@ def index():
         session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
         return render_template('index.html', auth_url=session["flow"]["auth_uri"])
     else:
-
         # Load job profiles at the start
-        job_profiles = load_job_profiles() 
+        job_profiles_doc = load_job_profiles() 
+        job_profiles = job_profiles_doc['job_profiles']
+
+        
         sort_order = request.args.get('sort', 'asc')
         if sort_order == 'desc':
             job_profiles.sort(key=lambda x: x['job_id'], reverse=True)
@@ -135,102 +147,109 @@ def my_profile():
 #*******************************
 #COMPANY PROFILE
 #*******************************
-#Information on sub: https://learn.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
+#Information on sub (subject): https://learn.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
 #It is the principal ID os the user, which is the unique identifier for the user account.
 
-def get_company_file_path():
-    if has_request_context() and 'user' in session:
-        user_sub = session["user"].get("sub", "default")
-    else:
-        user_sub = "default"
-    directory = os.path.join("./database", user_sub)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    return os.path.join(directory, 'company_profile.json')
 
-def load_company_profile():
+
+def get_user_sub():
+    '''Returns the user's sub (subject) ID, which is the unique identifier for the user account.'''
+    if has_request_context() and 'user' in session:
+        return session["user"].get("sub", "default")
+    else:
+        return "default"
+
+def query_container(query, parameters):
     try:
-        with open(get_company_file_path(), 'r') as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
+        return list(container.query_items(
+            query=query,
+            parameters=parameters,
+            enable_cross_partition_query=True
+        ))
+    except exceptions.CosmosHttpResponseError:
         return {}
 
-def save_company_profile(profile):
-    with open(get_company_file_path(), 'w') as file:
-        json.dump(profile, file, indent=4)
+def load_company_profile():
+    user_id = get_user_sub()
+    doc_id=user_id
+    items = query_container("SELECT * FROM c WHERE c.id = @id", [{"name": "@id", "value": doc_id}])  
+    return items[0] if items else {}
 
+def save_document(document):
+    try:
+        container.upsert_item(document)
+    except exceptions.CosmosHttpResponseError as e:
+        print(f'An error occurred: {e}')
 
 @app.route("/company_profile/view")
 def view_company_profile():
     company_profile = load_company_profile()
-    user=session["user"]
-    # Check if 'company_name' is not in the dictionary, if not, it means it is first time registration, hence we auto fill the info from Azure B2C
-    if 'company_name' not in company_profile:
-        company_profile['company_name'] = user.get('extension_CompanyName', 'unknown')
-        save_company_profile(company_profile)
-    if 'standard_service' not in company_profile:
-        company_profile['standard_service']=0
-        save_company_profile(company_profile)
-    if 'premium_service' not in company_profile:
-        company_profile['premium_service']=0
-        save_company_profile(company_profile)
-    return render_template("view_company_profile.html", profile=company_profile, user=user )
+    user = session["user"]
+    user_id=user.get("sub", "default")
+    # Initialize missing fields with default values if not present
+    fields_to_initialize = {
+        'id': user_id,
+        'user_id':user_id,
+        'company_name': user.get('extension_CompanyName', 'unknown'),
+        'standard_service': 0,
+        'premium_service': 0
+    }
+
+    # Check and initialize missing fields
+    update_required = False
+    for field, default_value in fields_to_initialize.items():
+        if field not in company_profile:
+            company_profile[field] = default_value
+            update_required = True
+
+    # Save updates if any field was initialized
+    if update_required:
+        save_document(company_profile)
+
+    return render_template("view_company_profile.html", profile=company_profile, user=user)
 
 
 @app.route("/company_profile/edit", methods=["GET", "POST"])
 def edit_company_profile():
     company_profile = load_company_profile()
-    user=session["user"]
+    user = session["user"]
 
     if request.method == "POST":
         # Process form data and update company_profile dictionary
-        company_profile['company_name'] = request.form.get('company_name')
-        company_profile['company_website'] = request.form.get('company_website')
-        company_profile['business_phone'] = request.form.get('business_phone')
-        company_profile['main_office_address'] = request.form.get('main_office_address')
-        company_profile['address_line_1'] = request.form.get('address_line_1')
-        company_profile['address_line_2'] = request.form.get('address_line_2')
-        company_profile['city'] = request.form.get('city')
-        company_profile['country'] = request.form.get('country')
-        company_profile['working_hours'] = request.form.get('working_hours')
-        company_profile['working_days'] = request.form.get('working_days')
-        company_profile['work_arrangement'] = request.form.get('work_arrangement')
-        # Update other fields as necessary
-        
+        fields_to_update = [
+            'company_name', 'company_website', 'business_phone', 
+            'main_office_address', 'address_line_1', 'address_line_2',
+            'city', 'country', 'working_hours', 'working_days', 
+            'work_arrangement'
+            # Add other fields as necessary
+        ]
 
-        save_company_profile(company_profile)
+        for field in fields_to_update:
+            company_profile[field] = request.form.get(field, '')
+
+        save_document(company_profile)
         return redirect(url_for('view_company_profile'))
 
     return render_template("edit_company_profile.html", profile=company_profile, user=user)
-
 
 #*******************************
 #JOB PROFILE
 #*******************************
 
-def get_profile_file_path():
-    if has_request_context() and 'user' in session:
-        user_sub = session["user"].get("sub", "default")
-    else:
-        user_sub = "default"
-
-    directory = os.path.join("./database", user_sub)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    return os.path.join(directory, 'job_profiles.json')
-
-
 def load_job_profiles():
-    try:
-        with open(get_profile_file_path(), 'r') as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-
-def save_job_profiles(profiles):
-    with open(get_profile_file_path(), 'w') as file:
-        json.dump(profiles, file, indent=4)
-
+    user_id=get_user_sub()
+    doc_id = user_id + '_job'
+    items = query_container("SELECT * FROM c WHERE c.id = @id", [{"name": "@id", "value": doc_id}])
+    #if item is empty, initialize the job profile
+    if not items:
+        job_profiles_doc_initialize = {
+            'id': doc_id,
+            'user_id':user_id,
+            'job_profiles': []
+        }
+        save_document(job_profiles_doc_initialize)
+        return job_profiles_doc_initialize
+    return items[0]
 
 def update_profile_from_form(profile, form_data):
     profile_updated = False  # Flag to track changes
@@ -255,9 +274,9 @@ def update_profile_from_form(profile, form_data):
 
 @app.route("/job_profile", methods=['GET', 'POST'])
 def create_job_profile():
-    job_profiles = load_job_profiles()
+    job_profiles_doc = load_job_profiles()   
+    job_profiles = job_profiles_doc['job_profiles']
     existing_ids = set(p["job_id"] for p in job_profiles)
-
     # Creating a new profile
     new_job_id = 1
     while new_job_id in existing_ids:
@@ -274,11 +293,9 @@ def create_job_profile():
     if new_job_id not in existing_ids:
         job_profiles.append(profile)
 
- 
-
     if request.method == 'POST':
         profile = update_profile_from_form(profile, request.form)
-        save_job_profiles(job_profiles)
+        save_document(job_profiles_doc)
         return redirect(url_for('view_job_profile', job_id=new_job_id, job_status=profile['job_status']))
 
     return render_template("job_profile.html", profile=profile, user=session["user"], new_create_job_indicator=1)
@@ -287,7 +304,8 @@ def create_job_profile():
 
 @app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
 def edit_job_profile(job_id):
-    job_profiles = load_job_profiles()
+    job_profiles_doc = load_job_profiles()
+    job_profiles = job_profiles_doc['job_profiles']
     existing_ids = set(p["job_id"] for p in job_profiles)
 
     if job_id not in existing_ids:
@@ -298,7 +316,7 @@ def edit_job_profile(job_id):
 
     if request.method == 'POST':
         profile = update_profile_from_form(profile, request.form)
-        save_job_profiles(job_profiles)
+        save_document(job_profiles_doc)
         return redirect(url_for('view_job_profile', job_id=job_id, job_status=profile['job_status']))
 
     return render_template("job_profile.html", profile=profile, user=session["user"], new_create_job_indicator=0)
@@ -307,12 +325,9 @@ def edit_job_profile(job_id):
 
 @app.route("/job_profile/view/<int:job_id>")
 def view_job_profile(job_id): 
-    job_profiles = load_job_profiles() 
-
+    job_profiles_doc = load_job_profiles() 
+    job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
-
-
-    
 
     if profile:
         return render_template("view_job_profile.html", profile=profile, user=session["user"])
@@ -321,15 +336,16 @@ def view_job_profile(job_id):
 
 @app.route("/delete_job_profile/<int:job_id>", methods=["POST"])
 def delete_job_profile(job_id):
-    job_profiles = load_job_profiles()
+    job_profiles_doc = load_job_profiles()
     job_profiles = [profile for profile in job_profiles if profile["job_id"] != job_id]
-    save_job_profiles(job_profiles)
+    save_document(job_profiles_doc)
     return redirect(url_for('index'))
 
 #Clone job profile
 @app.route("/clone_job_profile/<int:job_id>", methods=["POST"])
 def clone_job_profile(job_id):
-    job_profiles = load_job_profiles()
+    job_profiles_doc = load_job_profiles()
+    job_profiles = job_profiles_doc['job_profiles']
     existing_ids = set(p["job_id"] for p in job_profiles)
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
@@ -347,7 +363,7 @@ def clone_job_profile(job_id):
         job_profiles.append(new_profile)
 
 
-    save_job_profiles(job_profiles)
+    save_document(job_profiles_doc)
     return redirect(url_for('index'))
 
 
@@ -412,7 +428,8 @@ def generate_job_ad(profile,company_profile):
 @app.route("/create_job_ad/regenerate/<int:job_id>")
 def regenerate_job_ad(job_id):
     company_profile=load_company_profile()
-    job_profiles = load_job_profiles()
+    job_profiles_doc = load_job_profiles()
+    job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
     if not profile:
@@ -425,7 +442,7 @@ def regenerate_job_ad(job_id):
         profile['generated_ad'] = generated_ad
       
         profile['alow_ad_generation'] = False
-        save_job_profiles(job_profiles)
+        save_document(job_profiles_doc)
         html_content = generated_ad.replace("\n", "<br>")
         return render_template("job_ad.html", job_ad=html_content, job_id=job_id, user=session["user"])
 
@@ -433,7 +450,8 @@ def regenerate_job_ad(job_id):
 @app.route("/create_job_ad/<int:job_id>")
 def create_job_ad(job_id):
     company_profile=load_company_profile()
-    job_profiles = load_job_profiles()
+    job_profiles_doc = load_job_profiles()
+    job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
     if not profile:
@@ -455,7 +473,7 @@ def create_job_ad(job_id):
         generated_ad = generate_job_ad(profile,company_profile)
         profile['generated_ad'] = generated_ad
         profile['alow_ad_generation'] = False
-        save_job_profiles(job_profiles)
+        save_document(job_profiles_doc)
         html_content = generated_ad.replace("\n", "<br>")
     
     else:
@@ -466,8 +484,8 @@ def create_job_ad(job_id):
 @app.route("/edit_job_ad/<int:job_id>", methods=["GET", "POST"])
 def edit_job_ad(job_id):
     user=session["user"]
-    job_profiles = load_job_profiles()  # Load your job profiles
-
+    job_profiles_doc = load_job_profiles()  # Load your job profiles
+    job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
     if profile['alow_ad_generation'] == True:
@@ -483,7 +501,7 @@ def edit_job_ad(job_id):
         profile['generated_ad'] = request.form['generated_ad_content']
 
         # Save the updated profiles back to your storage
-        save_job_profiles(job_profiles)
+        save_document(job_profiles_doc)
 
         edited_ad= copy.deepcopy(profile['generated_ad'])
         html_content = edited_ad.replace("\n", "<br>")
@@ -511,7 +529,7 @@ def payment():
             company_profile['standard_service']=company_profile['standard_service']+int(selected_amount)
         elif selected_service=='premiumService':
             company_profile['premium_service']=company_profile['premium_service']+int(selected_amount)
-        save_company_profile(company_profile)
+        save_document(company_profile)
         return render_template("my_profile.html", user=user,standard_service=company_profile['standard_service'],premium_service=company_profile['premium_service'])
     return render_template("payment.html", user=user)
 
@@ -533,12 +551,12 @@ def checkout(job_id):
             company_profile['standard_service']=standard_service-1
         elif selected_service=='premiumService':
             company_profile['premium_service']=premium_service-1
-        save_company_profile(company_profile)
+        save_document(company_profile)
 
-        job_profiles = load_job_profiles()
+        job_profiles_doc = load_job_profiles()
         profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
         profile['job_status']='Submitted'
-        save_job_profiles(job_profiles)
+        save_document(job_profiles_doc)
         
         return render_template("checkout_success.html", user=user,job_id=job_id)
     
