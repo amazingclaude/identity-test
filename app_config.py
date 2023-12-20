@@ -32,3 +32,8 @@ ENDPOINT = '' # Application ID URI of app registration in Azure portal
 SCOPE = []  # Example with two exposed scopes: ["demo.read", "demo.write"]
 
 SESSION_TYPE = "filesystem"  # Specifies the token cache should be stored in server-side session
+
+ACCOUNT_HOST = os.getenv("ACCOUNT_HOST")
+ACCOUNT_KEY = os.getenv("ACCOUNT_KEY")
+COSMOS_DATABASE = 'ZispirePlatform'
+COSMOS_CONTAINER = 'Users'
