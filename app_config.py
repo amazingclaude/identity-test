@@ -36,4 +36,4 @@ SESSION_TYPE = "filesystem"  # Specifies the token cache should be stored in ser
 ACCOUNT_HOST = os.getenv("ACCOUNT_HOST")
 ACCOUNT_KEY = os.getenv("ACCOUNT_KEY")
 COSMOS_DATABASE = 'ZispirePlatform'
-COSMOS_CONTAINER = 'Users'
+COSMOS_CONTAINER = 'Profiles'

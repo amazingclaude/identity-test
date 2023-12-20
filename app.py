@@ -9,27 +9,22 @@ import os
 import openai
 import copy
 from datetime import datetime
-import datetime
 
-import azure.cosmos.documents as documents
-import azure.cosmos.cosmos_client as cosmos_client
-import azure.cosmos.exceptions as exceptions
-from azure.cosmos.partition_key import PartitionKey
-
+from azure.cosmos import CosmosClient, exceptions
 
 from dotenv import load_dotenv
 load_dotenv()  # This loads the .env file at the project root
-
-# Initialize the Cosmos DB client
-client = CosmosClient(ACCOUNT_HOST, {'masterKey': ACCOUNT_KEY})
-database = client.get_database_client(COSMOS_DATABASE)
-container = database.get_container_client(COSMOS_CONTAINER)
 
 
 
 app = Flask(__name__)
 app.config.from_object(app_config)
 Session(app)
+
+# Initialize the Cosmos DB client
+client = CosmosClient(app_config.ACCOUNT_HOST, credential=app_config.ACCOUNT_KEY)
+database = client.get_database_client(app_config.COSMOS_DATABASE)
+container = database.get_container_client(app_config.COSMOS_CONTAINER)
 
 # This section is needed for url_for("foo", _external=True) to automatically
 # generate http scheme when this sample is running on localhost,
@@ -164,10 +159,20 @@ def get_user_sub():
     else:
         return "default"
 
+def query_container(query, parameters):
+    try:
+        return list(container.query_items(
+            query=query,
+            parameters=parameters,
+            enable_cross_partition_query=True
+        ))
+    except exceptions.CosmosHttpResponseError:
+        return {}
+
 def load_company_profile():
     user_id = get_user_sub()
     doc_id=user_id
-    items = container.read_item(item=doc_id, partition_key=user_id)  
+    items = query_container("SELECT * FROM c WHERE c.id = @id", [{"name": "@id", "value": doc_id}])  
     return items[0] if items else {}
 
 def save_document(document):
@@ -234,7 +239,7 @@ def edit_company_profile():
 def load_job_profiles():
     user_id=get_user_sub()
     doc_id = user_id + '_job'
-    items = container.read_item(item=doc_id, partition_key=user_id)  
+    items = query_container("SELECT * FROM c WHERE c.id = @id", [{"name": "@id", "value": doc_id}])
     #if item is empty, initialize the job profile
     if not items:
         job_profiles_doc_initialize = {
@@ -300,6 +305,7 @@ def create_job_profile():
 @app.route("/job_profile/edit/<int:job_id>", methods=['GET', 'POST'])
 def edit_job_profile(job_id):
     job_profiles_doc = load_job_profiles()
+    job_profiles = job_profiles_doc['job_profiles']
     existing_ids = set(p["job_id"] for p in job_profiles)
 
     if job_id not in existing_ids:
@@ -339,6 +345,7 @@ def delete_job_profile(job_id):
 @app.route("/clone_job_profile/<int:job_id>", methods=["POST"])
 def clone_job_profile(job_id):
     job_profiles_doc = load_job_profiles()
+    job_profiles = job_profiles_doc['job_profiles']
     existing_ids = set(p["job_id"] for p in job_profiles)
 
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
@@ -422,6 +429,7 @@ def generate_job_ad(profile,company_profile):
 def regenerate_job_ad(job_id):
     company_profile=load_company_profile()
     job_profiles_doc = load_job_profiles()
+    job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
     if not profile:
@@ -443,6 +451,7 @@ def regenerate_job_ad(job_id):
 def create_job_ad(job_id):
     company_profile=load_company_profile()
     job_profiles_doc = load_job_profiles()
+    job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
 
     if not profile:

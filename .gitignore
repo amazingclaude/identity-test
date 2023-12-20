@@ -4,3 +4,15 @@
 
 # Ignore all .ipynb files (if you want to ignore all Jupyter Notebooks, uncomment the next line)
 *.ipynb
+
+#ignore the archive folder
+archive/
+
+#ignore flask session
+flask_session/
+
+#ignore the database folder
+database/
+
+#ignore the __pycache__ folder
+__pycache__/
