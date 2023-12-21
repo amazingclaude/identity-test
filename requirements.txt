@@ -7,4 +7,5 @@ msal>=1.7,<2
 
 openai==0.28.0
 python-dotenv
-json5==0.9.6
+
+azure-cosmos>=4.2,<5
