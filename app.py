@@ -407,7 +407,7 @@ def generate_job_ad(profile,company_profile):
     Part 2, About the company. Do not show the company name. 
     Part 3, About the role. Describle what the role does or what the purpose of the role is. Descript the key responsibilities as bulltin points, up to 10. 
     Part 4, Our Ideal Candidates. Describle the ideal candidate including the experience, skills, qualifications, and other requirements supplied
-    All information generated should contain minimum amendment to the provided job profile. In clude a closure phrase to encourage candidates to apply now.  
+    All information generated should contain minimum amendment to the provided job profile. Include a closure phrase to encourage candidates to apply now.  
     ===
     Job Title: {profile.get('job_title', '')}
     Responsibilities: {profile.get('job_reponsibilities', '')}
@@ -554,6 +554,7 @@ def checkout(job_id):
         save_document(company_profile)
 
         job_profiles_doc = load_job_profiles()
+        job_profiles = job_profiles_doc['job_profiles']
         profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
         profile['job_status']='Submitted'
         save_document(job_profiles_doc)
