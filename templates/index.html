@@ -7,6 +7,25 @@
 {% if user %}
 
     <h3>Job Profiles</h3>
+        <!-- Filters Section -->
+        <div style="margin-bottom: 20px;">
+            <!-- Filter for Deleted Cases -->
+            <form action="{{ url_for('index') }}" method="get">
+                Show Deleted Cases:
+                <select name="show_deleted" onchange="this.form.submit()">
+                    <option value="no" {% if request.args.get('show_deleted') == 'no' %}selected{% endif %}>No</option>
+                    <option value="yes" {% if request.args.get('show_deleted') == 'yes' %}selected{% endif %}>Yes</option>
+                </select>
+                <!-- Filter for Job Status -->
+                Job Status:
+                <select name="job_status" onchange="this.form.submit()">
+                    <option value="all">All</option>
+                    <option value="draft" {% if request.args.get('job_status') == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="submitted" {% if request.args.get('job_status') == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="completed" {% if request.args.get('job_status') == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </form>
+        </div>
 
     {% if job_profiles %}
         <div style="max-width: 500px;">
