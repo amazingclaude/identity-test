@@ -9,20 +9,23 @@
     <h3>Job Profiles</h3>
         <!-- Filters Section -->
         <div style="margin-bottom: 20px;">
-            <!-- Filter for Deleted Cases -->
-            <form action="{{ url_for('index') }}" method="get">
+            <!-- Filters Section -->
+            <form action="/" method="get">
+                <!-- Filter for Deleted Cases -->
                 Show Deleted Cases:
                 <select name="show_deleted" onchange="this.form.submit()">
-                    <option value="no" {% if request.args.get('show_deleted') == 'no' %}selected{% endif %}>No</option>
-                    <option value="yes" {% if request.args.get('show_deleted') == 'yes' %}selected{% endif %}>Yes</option>
+                    <option value="no" {% if show_deleted == 'no' %}selected{% endif %}>No</option>
+                    <option value="yes" {% if show_deleted == 'yes' %}selected{% endif %}>Yes</option>
                 </select>
+                <!-- Add a vertical divider or descriptive text here -->
+                &nbsp|&nbsp
                 <!-- Filter for Job Status -->
                 Job Status:
                 <select name="job_status" onchange="this.form.submit()">
-                    <option value="all">All</option>
-                    <option value="draft" {% if request.args.get('job_status') == 'draft' %}selected{% endif %}>Draft</option>
-                    <option value="submitted" {% if request.args.get('job_status') == 'submitted' %}selected{% endif %}>Submitted</option>
-                    <option value="completed" {% if request.args.get('job_status') == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="All" {% if job_status == 'All' %}selected{% endif %}>All</option>
+                    <option value="Draft" {% if job_status == 'Draft' %}selected{% endif %}>Draft</option>
+                    <option value="Submitted" {% if job_status == 'Submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="Completed" {% if job_status == 'Completed' %}selected{% endif %}>Completed</option>
                 </select>
             </form>
         </div>
@@ -34,8 +37,8 @@
                     <tr style="border-bottom: 2px solid #000;">
                         <th style="padding: 8px; text-align: left;">
                             Job ID
-                            <a href="{{ url_for('index', sort='asc') }}">↑</a>
-                            <a href="{{ url_for('index', sort='desc') }}">↓</a>
+                            <a href="{{ url_for('index', sort='asc', show_deleted=show_deleted, job_status=job_status) }}">↑</a>
+                            <a href="{{ url_for('index', sort='desc', show_deleted=show_deleted, job_status=job_status) }}">↓</a>
                         </th>
                         <th style="padding: 8px; text-align: left;">Job Title</th>
                         <th style="padding: 8px; text-align: left;">Job Status</th>

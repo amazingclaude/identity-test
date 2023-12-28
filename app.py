@@ -40,24 +40,30 @@ def anonymous():
 
 @app.route("/")
 def index():
-    #if not session.get("user"):
-    #    return redirect(url_for("login"))
-
     if not session.get("user"):
         session["flow"] = _build_auth_code_flow(scopes=app_config.SCOPE)
         return render_template('index.html', auth_url=session["flow"]["auth_uri"])
     else:
-        # Load job profiles at the start
         job_profiles_doc = load_job_profiles() 
         job_profiles = job_profiles_doc['job_profiles']
 
-        
+        # Get filter and sort parameters from the request
+        show_deleted = request.args.get('show_deleted', 'no')
+        job_status = request.args.get('job_status', 'all')
         sort_order = request.args.get('sort', 'asc')
-        if sort_order == 'desc':
-            job_profiles.sort(key=lambda x: x['job_id'], reverse=True)
-        else:
-            job_profiles.sort(key=lambda x: x['job_id'])   
-        return render_template('index.html', user=session["user"], job_profiles=job_profiles)
+
+        # Apply filters
+        if show_deleted == 'no':
+            job_profiles = [profile for profile in job_profiles if not profile.get('deleted', False)]
+        if job_status != 'all':
+            job_profiles = [profile for profile in job_profiles if profile.get('job_status') == job_status]
+
+        # Apply sorting
+        job_profiles.sort(key=lambda x: x['job_id'], reverse=(sort_order == 'desc'))
+
+        return render_template('index.html', user=session["user"], job_profiles=job_profiles, 
+                               show_deleted=show_deleted, job_status=job_status, sort_order=sort_order)
+
 
 @app.route("/login")
 def login():
@@ -290,7 +296,7 @@ def create_job_profile():
         'fixed_term_reason': 'Not Available', 
         'pay_contractor': 'Not Available', 
         'job_status': 'Draft',
-        'deleted': False  # New field to indicate deletion status
+        'job_deleted': False  # New field to indicate deletion status
     }
 
     # Append the new profile to job_profiles
@@ -339,14 +345,14 @@ def delete_job_profile(job_id):
     job_profiles = job_profiles_doc['job_profiles']
     for profile in job_profiles:
         if profile["job_id"] == job_id:
-            profile['deleted'] = True
+            profile['job_deleted'] = True
             break
     save_document(job_profiles_doc)
     return redirect(url_for('index'))
 
 # Filter out deleted profiles in your view
 def get_active_profiles(job_profiles):
-    return [profile for profile in job_profiles if not profile['deleted']]
+    return [profile for profile in job_profiles if not profile['job_deleted']]
 
 @app.route("/recover_job_profile/<int:job_id>", methods=["POST"])
 def recover_job_profile(job_id):
@@ -354,7 +360,7 @@ def recover_job_profile(job_id):
     job_profiles = job_profiles_doc['job_profiles']
     for profile in job_profiles:
         if profile["job_id"] == job_id:
-            profile['deleted'] = False  # Set the deleted flag back to False
+            profile['job_deleted'] = False  # Set the deleted flag back to False
             break
     save_document(job_profiles_doc)
     return redirect(url_for('index'))
