@@ -12,6 +12,8 @@ from datetime import datetime
 
 from azure.cosmos import CosmosClient, exceptions
 
+import stripe
+
 from dotenv import load_dotenv
 load_dotenv()  # This loads the .env file at the project root
 
@@ -25,6 +27,8 @@ Session(app)
 client = CosmosClient(app_config.ACCOUNT_HOST, credential=app_config.ACCOUNT_KEY)
 database = client.get_database_client(app_config.COSMOS_DATABASE)
 container = database.get_container_client(app_config.COSMOS_CONTAINER)
+
+stripe.api_key = app_config.STRIPE_KEY
 
 # This section is needed for url_for("foo", _external=True) to automatically
 # generate http scheme when this sample is running on localhost,
@@ -534,31 +538,12 @@ def edit_job_ad(job_id):
 
     return render_template("edit_job_ad.html", profile=profile, user=user)
 
-@app.route("/payment" , methods=["GET", "POST"])
-def payment():
-    company_profile = load_company_profile()
-    user=session["user"]
-    if 'standard_service' not in company_profile:
-        company_profile['standard_service']=0
-    if 'premium_service' not in company_profile:
-        company_profile['premium_service']=0
-        
-
-    if request.method == "POST":
-         # Retrieve data from the form
-        selected_service = request.form.get('selectedService')
-        selected_amount = request.form.get('numberOfReqs')
-
-        if selected_service=='standardService':
-            company_profile['standard_service']=company_profile['standard_service']+int(selected_amount)
-        elif selected_service=='premiumService':
-            company_profile['premium_service']=company_profile['premium_service']+int(selected_amount)
-        save_document(company_profile)
-        return render_template("my_profile.html", user=user,standard_service=company_profile['standard_service'],premium_service=company_profile['premium_service'])
-    return render_template("payment.html", user=user)
 
 @app.route("/checkout/<int:job_id>", methods=["GET", "POST"])
 def checkout(job_id):
+'''
+This function is used to consume the purchased quote.
+'''
     user=session["user"]
     company_profile = load_company_profile()
     if 'standard_service' not in company_profile:
@@ -587,6 +572,49 @@ def checkout(job_id):
     
     return render_template("checkout.html", user=user,standard_service=standard_service,premium_service=premium_service, job_id=job_id)
 
+@app.route("/payment" , methods=["GET", "POST"])
+def payment():
+    company_profile = load_company_profile()
+    user=session["user"]
+    if 'standard_service' not in company_profile:
+        company_profile['standard_service']=0
+    if 'premium_service' not in company_profile:
+        company_profile['premium_service']=0
+        
+
+    if request.method == "POST":
+         # Retrieve data from the form
+        selected_service = request.form.get('selectedService')
+        selected_amount = request.form.get('numberOfReqs')
+
+        if selected_service=='standardService':
+            company_profile['standard_service']=company_profile['standard_service']+int(selected_amount)
+        elif selected_service=='premiumService':
+            company_profile['premium_service']=company_profile['premium_service']+int(selected_amount)
+        save_document(company_profile)
+        return render_template("my_profile.html", user=user,standard_service=company_profile['standard_service'],premium_service=company_profile['premium_service'])
+    return render_template("payment.html", user=user)
+
+@app.route("/create-checkout-session", methods=['POST'])
+def create_checkout_session():
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                    'price': 'price_1OW105A8ljhYPX0F0CSmoO4M',
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url= 'success.html',
+            cancel_url= 'cancel.html',
+            automatic_tax={'enabled': True},
+        )
+    except Exception as e:
+        return str(e)
+
+    return redirect(checkout_session.url, code=303)
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 
