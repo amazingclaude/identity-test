@@ -37,3 +37,7 @@ ACCOUNT_HOST = os.getenv("ACCOUNT_HOST")
 ACCOUNT_KEY = os.getenv("ACCOUNT_KEY")
 COSMOS_DATABASE = 'ZispirePlatform'
 COSMOS_CONTAINER = 'Profiles'
+
+STRIPE_KEY=os.getenv("STRIPE_KEY")
+
+MY_DOMAIN=os.getenv("STRIPE_KEY")

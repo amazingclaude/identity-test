@@ -541,9 +541,9 @@ def edit_job_ad(job_id):
 
 @app.route("/checkout/<int:job_id>", methods=["GET", "POST"])
 def checkout(job_id):
-'''
-This function is used to consume the purchased quote.
-'''
+    '''
+    This function is used to consume the purchased quote.
+    '''
     user=session["user"]
     company_profile = load_company_profile()
     if 'standard_service' not in company_profile:
@@ -572,49 +572,108 @@ This function is used to consume the purchased quote.
     
     return render_template("checkout.html", user=user,standard_service=standard_service,premium_service=premium_service, job_id=job_id)
 
-@app.route("/payment" , methods=["GET", "POST"])
+price_dict = {
+        'premiumService': {'1': 'price_1OW1rkA8ljhYPX0FsffKjjX1', '2': 'price_1OW1uHA8ljhYPX0FQZQswxSv', '3': 'price_1OW1wWA8ljhYPX0FnzbzfYB3'},
+        'standardService': {'1': 'price_1OW105A8ljhYPX0F0CSmoO4M', '2': 'price_1OW1oIA8ljhYPX0FSJrK6kZy', '3': 'price_1OW1pOA8ljhYPX0FXqA8FaX8'}
+    }
+
+
+MY_DOMAIN = app_config.MY_DOMAIN  
+
+@app.route("/payment", methods=["GET", "POST"])
 def payment():
-    company_profile = load_company_profile()
-    user=session["user"]
-    if 'standard_service' not in company_profile:
-        company_profile['standard_service']=0
-    if 'premium_service' not in company_profile:
-        company_profile['premium_service']=0
-        
+    user = session["user"]
 
     if request.method == "POST":
-         # Retrieve data from the form
         selected_service = request.form.get('selectedService')
         selected_amount = request.form.get('numberOfReqs')
 
-        if selected_service=='standardService':
-            company_profile['standard_service']=company_profile['standard_service']+int(selected_amount)
-        elif selected_service=='premiumService':
-            company_profile['premium_service']=company_profile['premium_service']+int(selected_amount)
-        save_document(company_profile)
-        return render_template("my_profile.html", user=user,standard_service=company_profile['standard_service'],premium_service=company_profile['premium_service'])
+        # Retrieve the price ID from price_dict based on the selected service and amount
+        price_id = price_dict[selected_service][selected_amount]
+
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        'price': price_id,
+                        'quantity': int(selected_amount),
+                    },
+                ],
+                mode='payment',
+                success_url=MY_DOMAIN+'/stripe_success.html',
+                cancel_url=MY_DOMAIN+'/stripe_cancel.html',
+                automatic_tax={'enabled': True},
+                metadata={
+                    'selected_service': selected_service,
+                    'selected_amount': selected_amount
+                }
+            )
+            return redirect(checkout_session.url, code=303)
+        except Exception as e:
+            # Handle exceptions by returning an error message or redirecting to an error page
+            return str(e)
+
+    # If it's a GET request or any other method, render the payment page
     return render_template("payment.html", user=user)
 
-@app.route("/create-checkout-session", methods=['POST'])
-def create_checkout_session():
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            line_items=[
-                {
-                    # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    'price': 'price_1OW105A8ljhYPX0F0CSmoO4M',
-                    'quantity': 1,
-                },
-            ],
-            mode='payment',
-            success_url= 'success.html',
-            cancel_url= 'cancel.html',
-            automatic_tax={'enabled': True},
-        )
-    except Exception as e:
-        return str(e)
 
-    return redirect(checkout_session.url, code=303)
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    payload = request.data
+    event = None
+
+    try:
+        event = json.loads(payload)
+    except ValueError as e:
+        return '⚠️ Webhook error while parsing basic request.', 400
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+
+        # Retrieve the selected service and amount from the session
+        selected_service = session.get('metadata').get('selected_service')
+        selected_amount = session.get('metadata').get('selected_amount')
+
+        # Load the company profile and update it
+        company_profile = load_company_profile()
+        if 'standard_service' not in company_profile:
+            company_profile['standard_service'] = 0
+        if 'premium_service' not in company_profile:
+            company_profile['premium_service'] = 0
+
+        # Update the company profile based on the completed checkout session
+        if selected_service == 'standardService':
+            company_profile['standard_service'] += int(selected_amount)
+        elif selected_service == 'premiumService':
+            company_profile['premium_service'] += int(selected_amount)
+
+        # Save the updated company profile
+        save_document(company_profile)
+
+        print(f"Payment for {session['amount_total']} succeeded")
+        # Define and call a method to handle the successful payment intent if needed
+
+    # ... [handle other event types]
+
+    return jsonify(success=True)
+
+@app.route('/success', methods=['GET'])
+def order_success():
+    try:
+        session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
+        # TODO: Add customer info
+        # customer = stripe.Customer.retrieve(session.customer)
+
+        return render_template('stripe_sucess.html')
+    except Exception as e:
+        # Handle exceptions and possibly return an error message or page
+        print(f"Error retrieving order details: {e}")
+        return "An error occurred", 500
+    
+@app.route('/cancel', methods=['GET'])
+def cancel_order():
+    # Here you can add any logic you might need to handle a canceled order
+    return render_template('stripe_cancel.html')  # Render a cancel page or message
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 
