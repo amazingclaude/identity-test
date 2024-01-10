@@ -52,14 +52,14 @@ def index():
         job_profiles = job_profiles_doc['job_profiles']
 
         # Get filter and sort parameters from the request
-        show_deleted = request.args.get('show_deleted', 'no')
-        job_status = request.args.get('job_status', 'all')
+        show_deleted = request.args.get('show_deleted', 'No')
+        job_status = request.args.get('job_status', 'All')
         sort_order = request.args.get('sort', 'asc')
 
         # Apply filters
-        if show_deleted == 'no':
-            job_profiles = [profile for profile in job_profiles if not profile.get('deleted', False)]
-        if job_status != 'all':
+        if show_deleted == 'No':
+            job_profiles = [profile for profile in job_profiles if not profile.get('job_deleted', False)]
+        if job_status != 'All':
             job_profiles = [profile for profile in job_profiles if profile.get('job_status') == job_status]
 
         # Apply sorting
