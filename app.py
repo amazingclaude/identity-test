@@ -1,6 +1,6 @@
 import uuid
 import requests
-from flask import Flask, render_template, session, request, redirect, url_for, has_request_context
+from flask import Flask, render_template, session, request, redirect, url_for, has_request_context, jsonify
 from flask_session import Session  # https://pythonhosted.org/Flask-Session
 import msal
 import app_config
@@ -11,6 +11,8 @@ import copy
 from datetime import datetime
 
 from azure.cosmos import CosmosClient, exceptions
+
+import stripe
 
 from dotenv import load_dotenv
 load_dotenv()  # This loads the .env file at the project root
@@ -25,6 +27,8 @@ Session(app)
 client = CosmosClient(app_config.ACCOUNT_HOST, credential=app_config.ACCOUNT_KEY)
 database = client.get_database_client(app_config.COSMOS_DATABASE)
 container = database.get_container_client(app_config.COSMOS_CONTAINER)
+
+stripe.api_key = app_config.STRIPE_KEY
 
 # This section is needed for url_for("foo", _external=True) to automatically
 # generate http scheme when this sample is running on localhost,
@@ -139,7 +143,8 @@ def _get_token_from_cache(scope=None):
 #*******************************
 @app.route("/my_profile/view")
 def my_profile():
-    company_profile = load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     if 'standard_service' not in company_profile:
         company_profile['standard_service']=0
     if 'premium_service' not in company_profile:
@@ -163,7 +168,7 @@ def get_user_sub():
     if has_request_context() and 'user' in session:
         return session["user"].get("sub", "default")
     else:
-        return "default"
+        return 'default'
 
 def query_container(query, parameters):
     try:
@@ -175,9 +180,7 @@ def query_container(query, parameters):
     except exceptions.CosmosHttpResponseError:
         return {}
 
-def load_company_profile():
-    user_id = get_user_sub()
-    doc_id=user_id
+def load_company_profile(doc_id):
     items = query_container("SELECT * FROM c WHERE c.id = @id", [{"name": "@id", "value": doc_id}])  
     return items[0] if items else {}
 
@@ -189,7 +192,8 @@ def save_document(document):
 
 @app.route("/company_profile/view")
 def view_company_profile():
-    company_profile = load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     user = session["user"]
     user_id=user.get("sub", "default")
     # Initialize missing fields with default values if not present
@@ -217,7 +221,8 @@ def view_company_profile():
 
 @app.route("/company_profile/edit", methods=["GET", "POST"])
 def edit_company_profile():
-    company_profile = load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     user = session["user"]
 
     if request.method == "POST":
@@ -451,7 +456,8 @@ def generate_job_ad(profile,company_profile):
 
 @app.route("/create_job_ad/regenerate/<int:job_id>")
 def regenerate_job_ad(job_id):
-    company_profile=load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     job_profiles_doc = load_job_profiles()
     job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
@@ -473,7 +479,8 @@ def regenerate_job_ad(job_id):
 
 @app.route("/create_job_ad/<int:job_id>")
 def create_job_ad(job_id):
-    company_profile=load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     job_profiles_doc = load_job_profiles()
     job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
@@ -534,33 +541,15 @@ def edit_job_ad(job_id):
 
     return render_template("edit_job_ad.html", profile=profile, user=user)
 
-@app.route("/payment" , methods=["GET", "POST"])
-def payment():
-    company_profile = load_company_profile()
-    user=session["user"]
-    if 'standard_service' not in company_profile:
-        company_profile['standard_service']=0
-    if 'premium_service' not in company_profile:
-        company_profile['premium_service']=0
-        
-
-    if request.method == "POST":
-         # Retrieve data from the form
-        selected_service = request.form.get('selectedService')
-        selected_amount = request.form.get('numberOfReqs')
-
-        if selected_service=='standardService':
-            company_profile['standard_service']=company_profile['standard_service']+int(selected_amount)
-        elif selected_service=='premiumService':
-            company_profile['premium_service']=company_profile['premium_service']+int(selected_amount)
-        save_document(company_profile)
-        return render_template("my_profile.html", user=user,standard_service=company_profile['standard_service'],premium_service=company_profile['premium_service'])
-    return render_template("payment.html", user=user)
 
 @app.route("/checkout/<int:job_id>", methods=["GET", "POST"])
 def checkout(job_id):
+    '''
+    This function is used to consume the purchased quote.
+    '''
     user=session["user"]
-    company_profile = load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     if 'standard_service' not in company_profile:
         company_profile['standard_service']=0
     if 'premium_service' not in company_profile:
@@ -587,6 +576,122 @@ def checkout(job_id):
     
     return render_template("checkout.html", user=user,standard_service=standard_service,premium_service=premium_service, job_id=job_id)
 
+price_dict = {
+        'premiumService': {'1': 'price_1OW1rkA8ljhYPX0FsffKjjX1', '2': 'price_1OW1uHA8ljhYPX0FQZQswxSv', '3': 'price_1OW1wWA8ljhYPX0FnzbzfYB3'},
+        'standardService': {'1': 'price_1OW105A8ljhYPX0F0CSmoO4M', '2': 'price_1OW1oIA8ljhYPX0FSJrK6kZy', '3': 'price_1OW1pOA8ljhYPX0FXqA8FaX8'}
+    }
+
+
+MY_DOMAIN = app_config.MY_DOMAIN  
+
+@app.route("/payment", methods=["GET", "POST"])
+def payment():
+    user=session["user"]
+    user_id = get_user_sub()
+    
+    if request.method == "POST":
+        selected_service = request.form.get('selectedService')
+        selected_amount = request.form.get('numberOfReqs')
+
+        # Retrieve the price ID from price_dict based on the selected service and amount
+        price_id = price_dict[selected_service][selected_amount]
+
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        'price': price_id,
+                        'quantity': int(selected_amount),
+                    },
+                ],
+                mode='payment',
+                success_url=MY_DOMAIN+'/success',
+                cancel_url=MY_DOMAIN+'/cancel',
+                automatic_tax={'enabled': True},
+                metadata={
+                    'selected_service': selected_service,
+                    'selected_amount': selected_amount,
+                    'user_id':user_id
+                }
+            )
+            return redirect(checkout_session.url, code=303)
+        except Exception as e:
+            # Handle exceptions by returning an error message or redirecting to an error page
+            return str(e)
+
+    # If it's a GET request or any other method, render the payment page
+    return render_template("payment.html", user=user)
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    
+    payload = request.data
+    event = None
+
+    try:
+        event = json.loads(payload)
+    except json.decoder.JSONDecodeError as e:
+        print('⚠️  Webhook error while parsing basic request.' + str(e))
+        return jsonify(success=False)
+    
+     # Handle the event
+    if event['type'] == 'checkout.session.completed':
+        webhook_session = stripe.checkout.Session.retrieve(
+      event['data']['object']['id'],
+    #   expand=['line_items'],#This line appears in the API doc https://stripe.com/docs/payments/checkout/fulfill-orders
+    )
+        print(webhook_session)
+        # Retrieve the selected service and amount from the session
+        selected_service = webhook_session.get('metadata').get('selected_service')
+        selected_amount = webhook_session.get('metadata').get('selected_amount')
+        doc_id=webhook_session.get('metadata').get('user_id')
+
+        # Load the company profile and update it
+        company_profile = load_company_profile(doc_id)
+        if 'standard_service' not in company_profile:
+            company_profile['standard_service'] = 0
+        if 'premium_service' not in company_profile:
+            company_profile['premium_service'] = 0
+
+        # Update the company profile based on the completed checkout session
+        if selected_service == 'standardService':
+            company_profile['standard_service'] += int(selected_amount)
+        elif selected_service == 'premiumService':
+            company_profile['premium_service'] += int(selected_amount)
+        
+        print(company_profile)
+        # Save the updated company profile
+        save_document(company_profile)
+
+        print(f"Payment for {webhook_session['amount_total']} succeeded")
+    else:
+        # Unexpected event type
+        print('Unhandled event type {}'.format(event['type']))
+    # ... [handle other event types]
+
+   
+    print(company_profile)
+
+    return jsonify(success=True)
+    
+   
+@app.route('/success', methods=['GET'])
+def order_success():
+    try:
+        # TODO: session and customer info
+        # session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
+        # customer = stripe.Customer.retrieve(session.customer)
+
+        return render_template('stripe_success.html')
+    except Exception as e:
+        # Handle exceptions and possibly return an error message or page
+        print(f"Error retrieving order details: {e}")
+        return "An error occurred", 500
+    
+@app.route('/cancel', methods=['GET'])
+def cancel_order():
+    # Here you can add any logic you might need to handle a canceled order
+    return render_template('stripe_cancel.html')  # Render a cancel page or message
 
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 

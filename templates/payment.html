@@ -39,13 +39,13 @@
     </tr>
 
   </table>
-  <!-- You might want to add a form here to handle the payment after selection -->
-  <form id="paymentForm" action="{{ url_for('payment') }}" method="post"> <!-- This form will be submitted to the payment endpoint -->
-    <!-- Hidden fields to store the selected payment information -->
-    <input type="hidden" id="selectedService" name="selectedService">
-    <input type="hidden" id="numberOfReqs" name="numberOfReqs">
-    <button type="submit" > Pay Now </button>
-  </form>
+<!-- Payment form -->
+<form id="paymentForm" action="/payment" method="post"> <!-- Form will submit to create checkout session -->
+  <!-- Hidden fields to store the selected payment information -->
+  <input type="hidden" id="selectedService" name="selectedService">
+  <input type="hidden" id="numberOfReqs" name="numberOfReqs">
+  <button type="submit" > Pay Now </button> <!-- Changed to the style and text from stripe_checkout.html -->
+</form>
 
    <!-- Cancel button -->
   <div>

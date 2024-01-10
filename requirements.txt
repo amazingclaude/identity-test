@@ -10,3 +10,5 @@ python-dotenv
 
 azure-cosmos>=4.2,<5
 azure-core>=1.16,<2
+
+stripe>=7
