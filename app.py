@@ -1,6 +1,6 @@
 import uuid
 import requests
-from flask import Flask, render_template, session, request, redirect, url_for, has_request_context
+from flask import Flask, render_template, session, request, redirect, url_for, has_request_context, jsonify
 from flask_session import Session  # https://pythonhosted.org/Flask-Session
 import msal
 import app_config
@@ -143,7 +143,8 @@ def _get_token_from_cache(scope=None):
 #*******************************
 @app.route("/my_profile/view")
 def my_profile():
-    company_profile = load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     if 'standard_service' not in company_profile:
         company_profile['standard_service']=0
     if 'premium_service' not in company_profile:
@@ -167,7 +168,7 @@ def get_user_sub():
     if has_request_context() and 'user' in session:
         return session["user"].get("sub", "default")
     else:
-        return "default"
+        return 'default'
 
 def query_container(query, parameters):
     try:
@@ -179,9 +180,7 @@ def query_container(query, parameters):
     except exceptions.CosmosHttpResponseError:
         return {}
 
-def load_company_profile():
-    user_id = get_user_sub()
-    doc_id=user_id
+def load_company_profile(doc_id):
     items = query_container("SELECT * FROM c WHERE c.id = @id", [{"name": "@id", "value": doc_id}])  
     return items[0] if items else {}
 
@@ -193,7 +192,8 @@ def save_document(document):
 
 @app.route("/company_profile/view")
 def view_company_profile():
-    company_profile = load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     user = session["user"]
     user_id=user.get("sub", "default")
     # Initialize missing fields with default values if not present
@@ -221,7 +221,8 @@ def view_company_profile():
 
 @app.route("/company_profile/edit", methods=["GET", "POST"])
 def edit_company_profile():
-    company_profile = load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     user = session["user"]
 
     if request.method == "POST":
@@ -455,7 +456,8 @@ def generate_job_ad(profile,company_profile):
 
 @app.route("/create_job_ad/regenerate/<int:job_id>")
 def regenerate_job_ad(job_id):
-    company_profile=load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     job_profiles_doc = load_job_profiles()
     job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
@@ -477,7 +479,8 @@ def regenerate_job_ad(job_id):
 
 @app.route("/create_job_ad/<int:job_id>")
 def create_job_ad(job_id):
-    company_profile=load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     job_profiles_doc = load_job_profiles()
     job_profiles = job_profiles_doc['job_profiles']
     profile = next((p for p in job_profiles if p["job_id"] == job_id), None)
@@ -545,7 +548,8 @@ def checkout(job_id):
     This function is used to consume the purchased quote.
     '''
     user=session["user"]
-    company_profile = load_company_profile()
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     if 'standard_service' not in company_profile:
         company_profile['standard_service']=0
     if 'premium_service' not in company_profile:
@@ -582,8 +586,9 @@ MY_DOMAIN = app_config.MY_DOMAIN
 
 @app.route("/payment", methods=["GET", "POST"])
 def payment():
-    user = session["user"]
-
+    user=session["user"]
+    user_id = get_user_sub()
+    
     if request.method == "POST":
         selected_service = request.form.get('selectedService')
         selected_amount = request.form.get('numberOfReqs')
@@ -600,12 +605,13 @@ def payment():
                     },
                 ],
                 mode='payment',
-                success_url=MY_DOMAIN+'/stripe_success.html',
-                cancel_url=MY_DOMAIN+'/stripe_cancel.html',
+                success_url=MY_DOMAIN+'/success',
+                cancel_url=MY_DOMAIN+'/cancel',
                 automatic_tax={'enabled': True},
                 metadata={
                     'selected_service': selected_service,
-                    'selected_amount': selected_amount
+                    'selected_amount': selected_amount,
+                    'user_id':user_id
                 }
             )
             return redirect(checkout_session.url, code=303)
@@ -616,26 +622,32 @@ def payment():
     # If it's a GET request or any other method, render the payment page
     return render_template("payment.html", user=user)
 
-
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    
     payload = request.data
     event = None
 
     try:
         event = json.loads(payload)
-    except ValueError as e:
-        return '⚠️ Webhook error while parsing basic request.', 400
-
+    except json.decoder.JSONDecodeError as e:
+        print('⚠️  Webhook error while parsing basic request.' + str(e))
+        return jsonify(success=False)
+    
+     # Handle the event
     if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-
+        webhook_session = stripe.checkout.Session.retrieve(
+      event['data']['object']['id'],
+    #   expand=['line_items'],#This line appears in the API doc https://stripe.com/docs/payments/checkout/fulfill-orders
+    )
+        print(webhook_session)
         # Retrieve the selected service and amount from the session
-        selected_service = session.get('metadata').get('selected_service')
-        selected_amount = session.get('metadata').get('selected_amount')
+        selected_service = webhook_session.get('metadata').get('selected_service')
+        selected_amount = webhook_session.get('metadata').get('selected_amount')
+        doc_id=webhook_session.get('metadata').get('user_id')
 
         # Load the company profile and update it
-        company_profile = load_company_profile()
+        company_profile = load_company_profile(doc_id)
         if 'standard_service' not in company_profile:
             company_profile['standard_service'] = 0
         if 'premium_service' not in company_profile:
@@ -646,25 +658,31 @@ def webhook():
             company_profile['standard_service'] += int(selected_amount)
         elif selected_service == 'premiumService':
             company_profile['premium_service'] += int(selected_amount)
-
+        
+        print(company_profile)
         # Save the updated company profile
         save_document(company_profile)
 
-        print(f"Payment for {session['amount_total']} succeeded")
-        # Define and call a method to handle the successful payment intent if needed
-
+        print(f"Payment for {webhook_session['amount_total']} succeeded")
+    else:
+        # Unexpected event type
+        print('Unhandled event type {}'.format(event['type']))
     # ... [handle other event types]
 
-    return jsonify(success=True)
+   
+    print(company_profile)
 
+    return jsonify(success=True)
+    
+   
 @app.route('/success', methods=['GET'])
 def order_success():
     try:
-        session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
-        # TODO: Add customer info
+        # TODO: session and customer info
+        # session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
         # customer = stripe.Customer.retrieve(session.customer)
 
-        return render_template('stripe_sucess.html')
+        return render_template('stripe_success.html')
     except Exception as e:
         # Handle exceptions and possibly return an error message or page
         print(f"Error retrieving order details: {e}")

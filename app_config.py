@@ -40,4 +40,4 @@ COSMOS_CONTAINER = 'Profiles'
 
 STRIPE_KEY=os.getenv("STRIPE_KEY")
 
-MY_DOMAIN=os.getenv("STRIPE_KEY")
+MY_DOMAIN=os.getenv("MY_DOMAIN")
