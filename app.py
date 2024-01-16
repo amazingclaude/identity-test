@@ -344,6 +344,7 @@ def view_job_profile(job_id):
     else:
         return "Profile not found", 404
 
+#TODO 1) adjust the button in the deleted job profile page,  2) Add recover function for deleted job profile
 @app.route("/delete_job_profile/<int:job_id>", methods=["POST"])
 def delete_job_profile(job_id):
     job_profiles_doc = load_job_profiles()
@@ -622,6 +623,7 @@ def payment():
     # If it's a GET request or any other method, render the payment page
     return render_template("payment.html", user=user)
 
+#TODO Add security checking for webhook (Signature verification)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     
