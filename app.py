@@ -622,6 +622,7 @@ def payment():
     # If it's a GET request or any other method, render the payment page
     return render_template("payment.html", user=user)
 
+#TODO Add security checking for webhook (Signature verification)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     

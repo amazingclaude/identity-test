@@ -6,7 +6,8 @@
 <h2>Job Profile: {{ profile.job_title }}</h2>
 
 <div class="header-container">
-{% if profile['job_status'] != "Submitted" %}
+{% if profile['job_status'] != "Submitted" and not profile['job_deleted'] %}
+
 
 
     <div class="edit-options">
@@ -30,30 +31,35 @@
         </a>
     </div>
 
-{% endif %}
-</div>
 
-    
+{% elif profile['job_status'] == "Submitted" and not profile['job_deleted'] %}
 
-{% if profile['job_status'] == "Submitted" %}
-<div class="edit-options">
-    <button id="editIcon">🖉 Edit Options</button>
-    <div id="dropdownMenu" class="dropdown-content">
+    <div class="edit-options">
+        <button id="editIcon">🖉 Edit Options</button>
+        <div id="dropdownMenu" class="dropdown-content">
 
-             <!-- Clone this job profile -->
-        <div>
-            <form action="{{ url_for('clone_job_profile', job_id=profile.job_id) }}" method="post">
-                <button type="submit" onclick="return confirmClone();" >Clone</button>
+                <!-- Clone this job profile -->
+            <div>
+                <form action="{{ url_for('clone_job_profile', job_id=profile.job_id) }}" method="post">
+                    <button type="submit" onclick="return confirmClone();" >Clone</button>
+                </form>
+            </div>
+
+            <form action="{{ url_for('delete_job_profile', job_id=profile.job_id) }}" method="post">
+                <button type="submit" onclick="return confirmDelete();">Delete</button>
             </form>
+
         </div>
-
-        <form action="{{ url_for('delete_job_profile', job_id=profile.job_id) }}" method="post">
-            <button type="submit" onclick="return confirmDelete();">Delete</button>
-        </form>
-
     </div>
-</div>
+{% elif profile['job_deleted'] %}
+    <div>
+        <form action="{{ url_for('recover_job_profile', job_id=profile.job_id) }}" method="post">
+            <button type="submit">Recover</button>
+        </form>
+    </div>
 {% endif %}
+</div>
+
 
 <div>
     <p><strong>job ID:</strong> {{ profile.job_id }}</p>
@@ -84,7 +90,7 @@
     
     <p><strong>Generated Job Ad:</strong>
     <div  class="job-ad-container">
-        <!--the sage means that the html tags in the generated_ad will be rendered as html-->
+        <!--the safe means that the html tags in the generated_ad will be rendered as html-->
         <a>{{profile['generated_ad'].replace("\n", "<br>") | safe}}</a>
     </div>
 {% endif %}

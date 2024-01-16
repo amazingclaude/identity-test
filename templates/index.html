@@ -31,7 +31,7 @@
         </div>
 
     {% if job_profiles %}
-        <div style="max-width: 500px;">
+        <div style="max-width: 600px;">
             <table style="border-collapse: collapse; width: 100%;">
                 <thead>
                     <tr style="border-bottom: 2px solid #000;">
@@ -42,6 +42,9 @@
                         </th>
                         <th style="padding: 8px; text-align: left;">Job Title</th>
                         <th style="padding: 8px; text-align: left;">Job Status</th>
+                        {% if show_deleted == 'Yes' %}
+                        <th style="padding: 8px; text-align: left;">Record Status</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -70,6 +73,15 @@
                                     {% endif %}
                                 </a>
                             </td>
+                            {% if show_deleted == 'Yes' %}
+                            <td>
+                                {% if profile['job_deleted'] %}
+                                    ❌ Deleted
+                                {% else %}
+                                    ✅ Active
+                                {% endif %}
+                            </td>
+                            {% endif %}
                             
                         </tr>
                     {% endfor %}
