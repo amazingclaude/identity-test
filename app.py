@@ -202,7 +202,10 @@ def view_company_profile():
         'user_id':user_id,
         'company_name': user.get('extension_CompanyName', 'unknown'),
         'standard_service': 0,
-        'premium_service': 0
+        'premium_service': 0,
+        'working_hours':0,
+        'working_days':5,
+        'work_arrangement':'Hybrid'
     }
 
     # Check and initialize missing fields
