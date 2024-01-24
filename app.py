@@ -202,7 +202,10 @@ def view_company_profile():
         'user_id':user_id,
         'company_name': user.get('extension_CompanyName', 'unknown'),
         'standard_service': 0,
-        'premium_service': 0
+        'premium_service': 0,
+        'working_hours':0,
+        'working_days':5,
+        'work_arrangement':'Hybrid'
     }
 
     # Check and initialize missing fields
@@ -285,6 +288,8 @@ def update_profile_from_form(profile, form_data):
 
 @app.route("/job_profile", methods=['GET', 'POST'])
 def create_job_profile():
+    doc_id = get_user_sub()
+    company_profile = load_company_profile(doc_id)
     job_profiles_doc = load_job_profiles()   
     job_profiles = job_profiles_doc['job_profiles']
 
@@ -301,7 +306,11 @@ def create_job_profile():
         'fixed_term_reason': 'Not Available', 
         'pay_contractor': 'Not Available', 
         'job_status': 'Draft',
-        'job_deleted': False  # New field to indicate deletion status
+        'job_deleted': False,  # New field to indicate deletion status
+
+        'working_hours':company_profile['working_hours'],
+        'working_days':company_profile['working_days'],
+        'work_arrangement':company_profile['work_arrangement'],
     }
 
     # Append the new profile to job_profiles
