@@ -413,7 +413,7 @@ def call_azure_open_ai(job_profile_description):
     openai.api_key = os.getenv("AZURE_OPENAI_KEY")
     openai.api_base = os.getenv("AZURE_OPENAI_ENDPOINT") # your endpoint should look like the following https://YOUR_RESOURCE_NAME.openai.azure.com/
     openai.api_type = 'azure'
-    openai.api_version = '2023-07-01-preview' # this might change in the future
+    openai.api_version = '2023-12-01-preview' # this might change in the future
 
     deployment_name='zispire_openai' #This will correspond to the custom name you chose for your deployment when you deployed a model. 
     message_text = [{"role":"system",
